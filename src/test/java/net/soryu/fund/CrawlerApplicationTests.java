@@ -1,4 +1,4 @@
-package net.cheetahead.crawler;
+package net.soryu.fund;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
