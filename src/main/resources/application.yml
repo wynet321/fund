@@ -4,8 +4,8 @@ spring:
       enabled:DETECT
   datasource:
     sql-script-encoding: UTF-8
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/cheetahead_fund?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/soryu?useSsl=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
     username: root
     password: passw0rd
     tomcat:
@@ -15,9 +15,9 @@ spring:
     properties:
       hibernate:
         generate_statistics: false
-        dialect: org.hibernate.dialect.MySQL5Dialect
+        dialect: org.hibernate.dialect.MariaDB103Dialect
         ddl-auto: none
-        show_sql: true
+        show_sql: false
         order_inserts: true
         order_updates: true
         connection:
@@ -37,5 +37,6 @@ server:
   servlet:
     contextPath: /fund
   port: 9000
+  thread-count: 5
 
   

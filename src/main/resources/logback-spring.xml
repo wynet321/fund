@@ -35,7 +35,7 @@
 	<!-- <OnLower>DENY</OnLower> -->
 	<!-- </turboFilter> -->
 
-	<logger name="net.cheetahead" level="INFO" additivity="false">
+	<logger name="net.soryu" level="INFO" additivity="false">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="STDERR" />
 	</logger>
