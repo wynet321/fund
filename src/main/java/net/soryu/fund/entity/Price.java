@@ -3,30 +3,35 @@ package net.soryu.fund.entity;
 import java.math.BigDecimal;
 
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "currency_price")
-public class CurrencyFundPrice extends FundPrice {
+@Table(name = "fund_price")
+public class Price {
 
-    private static final long serialVersionUID = -7973063810241440692L;
+    @EmbeddedId
+    private PriceIdentity priceIdentity;
 
-    // @EmbeddedId
-    // private PriceIdentity priceIdentity;
     @Column(name = "return_of_ten_kilo")
     private BigDecimal returnOfTenKilo;
 
     @Column(name = "seven_day_annualized_rate_of_return")
     private BigDecimal sevenDayAnnualizedRateOfReturn;
 
-    // public PriceIdentity getPriceIdentity() {
-    // return priceIdentity;
-    // }
-    //
-    // public void setPriceIdentity(PriceIdentity priceIdentity) {
-    // this.priceIdentity = priceIdentity;
-    // }
+    private BigDecimal price;
+
+    @Column(name = "accumulated_price")
+    private BigDecimal accumulatedPrice;
+
+    public PriceIdentity getPriceIdentity() {
+        return priceIdentity;
+    }
+
+    public void setPriceIdentity(PriceIdentity priceIdentity) {
+        this.priceIdentity = priceIdentity;
+    }
 
     public BigDecimal getReturnOfTenKilo() {
         return returnOfTenKilo;
@@ -44,5 +49,20 @@ public class CurrencyFundPrice extends FundPrice {
         this.sevenDayAnnualizedRateOfReturn = sevenDayAnnualizedRateOfReturn;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
 
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public BigDecimal getAccumulatedPrice() {
+        return accumulatedPrice;
+    }
+
+    public void setAccumulatedPrice(BigDecimal accumulatedPrice) {
+        this.accumulatedPrice = accumulatedPrice;
+    }
+    
 }

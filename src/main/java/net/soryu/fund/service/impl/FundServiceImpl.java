@@ -1,10 +1,11 @@
 package net.soryu.fund.service.impl;
 
+import net.soryu.fund.entity.Company;
 import net.soryu.fund.entity.Fund;
 import net.soryu.fund.repository.FundRepo;
 import net.soryu.fund.service.CompanyService;
-import net.soryu.fund.service.DataService;
 import net.soryu.fund.service.FundService;
+import net.soryu.fund.service.WebsiteDataService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,16 +16,14 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 @Service
-public class FundServiceImpl implements FundService {
+public class FundServiceImpl extends abstractServiceImpl implements FundService {
 
     @Resource
     private FundRepo fundRepo;
-
+    @Resource
+    private WebsiteDataService dataService;
     @Resource
     private CompanyService companyService;
-
-    @Resource
-    private DataService dataService;
 
     @Override
     public Page<Fund> get(Pageable pageable) throws Exception {
@@ -33,7 +32,8 @@ public class FundServiceImpl implements FundService {
 
     @Override
     public List<Fund> createByCompanyId(String companyId) throws Exception {
-        return fundRepo.saveAll(dataService.getFundsFromWebSite(companyService.find(companyId)));
+        Company company = companyService.find(companyId);
+        return fundRepo.saveAll(dataService.getFunds(companyId, company.getAbbr()));
     }
 
     @Override

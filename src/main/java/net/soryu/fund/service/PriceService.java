@@ -1,6 +1,6 @@
 package net.soryu.fund.service;
 
-import net.soryu.fund.entity.NonCurrencyFundPrice;
+import net.soryu.fund.entity.Price;
 import net.soryu.fund.entity.MonthAveragePrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,11 +12,13 @@ import javax.transaction.Transactional;
 
 public interface PriceService {
 
-    Page<NonCurrencyFundPrice> findByFundName(String Name, Pageable pageable) throws Exception;
+    Page<Price> findByFundName(String Name, Pageable pageable) throws Exception;
 
-    Page<NonCurrencyFundPrice> findByFundId(String id, Pageable pageable) throws Exception;
+    Page<Price> findByFundId(String id, Pageable pageable) throws Exception;
 
-    List<NonCurrencyFundPrice> findByFundId(String id,  LocalDate startDate) throws Exception;
+    Price findByFundIdDate(String id, LocalDate date) throws Exception;
+
+    Page<Price> find(String id, LocalDate startDate, Pageable pageable) throws Exception;
 
     List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate) throws Exception;
     

@@ -15,17 +15,14 @@ import java.util.List;
 import javax.annotation.Resource;
 
 @Service
-public class RateServiceImpl implements RateService {
+public class RateServiceImpl extends abstractServiceImpl implements RateService {
 
     @Resource
     private MonthRateRepo monthRateRepo;
-
     @Resource
     private YearRateRepo yearRateRepo;
-
     @Resource
     private PriceService priceService;
-
     @Resource
     private FundService fundService;
 

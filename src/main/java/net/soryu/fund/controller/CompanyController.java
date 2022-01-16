@@ -1,13 +1,17 @@
 package net.soryu.fund.controller;
 
+import net.soryu.fund.entity.Company;
 import net.soryu.fund.service.CompanyService;
-import net.soryu.fund.service.DataService;
+import net.soryu.fund.service.WebsiteDataService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -17,9 +21,8 @@ public class CompanyController {
 
     @Resource
     private CompanyService companyService;
-
     @Resource
-    private DataService dataService;
+    private WebsiteDataService dataService;
 
     @GetMapping
     public Object findAll(Pageable pageable) throws Exception {
@@ -31,8 +34,14 @@ public class CompanyController {
         return companyService.find(id);
     }
 
-    @PostMapping
-    public Object fetch() throws Exception {
-        return companyService.create(dataService.getCompanyListFromWebsite());
+    @PostMapping(value = "/ids")
+    public Object importAll() throws Exception {
+        List<String> companyIds = dataService.getCompanyIds();
+        List<Company> companies = new LinkedList<Company>();
+        for (String id : companyIds) {
+            Company company = dataService.getCompany(id);
+            companies.add(company);
+        }
+        return companyService.create(companies);
     }
 }

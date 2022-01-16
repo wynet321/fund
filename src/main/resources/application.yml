@@ -14,7 +14,7 @@ spring:
   jpa:
     properties:
       hibernate:
-        generate_statistics: false
+        generate_statistics: true
         dialect: org.hibernate.dialect.MariaDB103Dialect
         ddl-auto: none
         show_sql: false
@@ -37,6 +37,6 @@ server:
   servlet:
     contextPath: /fund
   port: 9000
-  thread-count: 5
+  thread-count: 100
 
   

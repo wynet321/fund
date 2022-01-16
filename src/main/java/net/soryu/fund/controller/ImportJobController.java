@@ -1,6 +1,6 @@
 package net.soryu.fund.controller;
 
-import net.soryu.fund.service.DataService;
+import net.soryu.fund.service.JobService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,25 +11,24 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping(value = "/api/import", headers = "Accept=application/json")
-public class ImportController {
+public class ImportJobController {
 
     @Resource
-    private DataService dataService;
+    private JobService jobService;
 
     @PostMapping
-    public Object importData() throws Exception {
-        return dataService.generateFundPriceRetrievalJob();
+    public Object startImportJob() throws Exception {
+        return jobService.startPriceRetrievalJob();
     }
 
     @GetMapping
-    public Object getStatus() throws Exception {
-        return dataService.getStatus();
+    public Object getJobStatus() throws Exception {
+        return jobService.getPriceRetrievalJobStatus();
     }
 
     @DeleteMapping
-    public Object stopImport() throws Exception {
-        return dataService.stop();
+    public Object stopImportJob() throws Exception {
+        return jobService.stopPriceRetrievalJob();
     }
-
 
 }

@@ -3,7 +3,7 @@ package net.soryu.fund.service.impl;
 import net.soryu.fund.entity.Company;
 import net.soryu.fund.repository.CompanyRepo;
 import net.soryu.fund.service.CompanyService;
-import net.soryu.fund.service.DataService;
+import net.soryu.fund.service.WebsiteDataService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,13 +14,12 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 @Service
-public class CompanyServiceImpl implements CompanyService {
+public class CompanyServiceImpl extends abstractServiceImpl implements CompanyService {
 
     @Resource
     private CompanyRepo companyRepo;
-
     @Resource
-    private DataService dataService;
+    private WebsiteDataService dataService;
 
     @Override
     public Page<Company> find(Pageable pageable) throws Exception {
