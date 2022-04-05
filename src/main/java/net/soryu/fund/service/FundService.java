@@ -11,9 +11,6 @@ import javax.transaction.Transactional;
 public interface FundService {
     Page<Fund> get(Pageable pageable) throws Exception;
 
-    @Transactional
-    List<Fund> createByCompanyId(String companyId) throws Exception;
-
     Fund findById(String id) throws Exception;
 
     Page<Fund> findByCompanyId(String companyId, Pageable pageable) throws Exception;
@@ -26,4 +23,8 @@ public interface FundService {
 
     @Transactional
     List<Fund> create(List<Fund> funds) throws Exception;
+
+    List<Fund> findAll() throws Exception;
+
+    Fund findByName(String name) throws Exception;
 }

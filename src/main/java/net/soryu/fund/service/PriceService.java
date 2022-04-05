@@ -12,7 +12,7 @@ import javax.transaction.Transactional;
 
 public interface PriceService {
 
-    Page<Price> findByFundName(String Name, Pageable pageable) throws Exception;
+    Page<Price> findByName(String Name, Pageable pageable) throws Exception;
 
     Page<Price> findByFundId(String id, Pageable pageable) throws Exception;
 

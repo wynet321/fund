@@ -1,12 +1,25 @@
 package net.soryu.fund.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Embeddable
 public class MonthRateIdentity implements Serializable {
+
+    private static final long serialVersionUID = 5044068352262279471L;
+
+    @Column(name = "fund_id")
+    private String fundId;
+    private int month;
 
     @Override
     public int hashCode() {
@@ -35,28 +48,4 @@ public class MonthRateIdentity implements Serializable {
             return false;
         return true;
     }
-
-    private static final long serialVersionUID = 5044068352262279471L;
-
-    @Column(name = "fund_id")
-    private String fundId;
-
-    private int month;
-
-    public String getFundId() {
-        return fundId;
-    }
-
-    public void setFundId(String fundId) {
-        this.fundId = fundId;
-    }
-
-    public int getMonth() {
-        return month;
-    }
-
-    public void setMonth(int month) {
-        this.month = month;
-    }
-
 }

@@ -1,5 +1,6 @@
 package net.soryu.fund.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import net.soryu.fund.entity.Company;
 import net.soryu.fund.entity.Fund;
 import net.soryu.fund.entity.Status;
@@ -16,8 +17,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+@Log4j2
 @Service
-public class JobServiceImpl extends abstractServiceImpl implements JobService {
+public class JobServiceImpl implements JobService {
 
     private ThreadPoolTaskExecutor executor;
     private long startTime;
@@ -36,7 +38,7 @@ public class JobServiceImpl extends abstractServiceImpl implements JobService {
 
     @Override
     public Status startPriceRetrievalJob() throws Exception {
-        logger.info("Website retrieval thread count is " + threadCount);
+        log.info("Website retrieval thread count is " + threadCount);
         if (executor == null) {
             executor = new ThreadPoolTaskExecutor();
             executor.setCorePoolSize(threadCount);
@@ -46,7 +48,7 @@ public class JobServiceImpl extends abstractServiceImpl implements JobService {
         }
         if (executor.getThreadPoolExecutor().getQueue().isEmpty()) {
             List<String> companyIds = dataService.getCompanyIds();
-            logger.info("Totally found " + companyIds.size() + " companies.");
+            log.info("Totally found " + companyIds.size() + " companies.");
             startTime = System.currentTimeMillis();
             for (String id : companyIds) {
                 executor.execute(new Task(GET_FUND_LIST, id));
@@ -69,7 +71,7 @@ public class JobServiceImpl extends abstractServiceImpl implements JobService {
     public boolean stopPriceRetrievalJob() throws Exception {
         executor.shutdown();
         executor.getThreadPoolExecutor().getQueue().clear();
-        logger.info("executor is terminating...");
+        log.info("executor is terminating...");
         return true;
     }
 
@@ -91,13 +93,13 @@ public class JobServiceImpl extends abstractServiceImpl implements JobService {
                 } else if (jobType == GET_FUND_LIST) {
                     Company savedCompany = companyService.create(dataService.getCompany(id));
                     List<Fund> fundList = fundService.create(dataService.getFunds(id, savedCompany.getAbbr()));
-                    logger.info("Imported fund list for " + savedCompany.getName() + ". Total funds: " + fundList.size());
+                    log.info("Imported fund list for " + savedCompany.getName() + ". Total funds: " + fundList.size());
                     for (Fund fund : fundList) {
                         executor.execute(new Task(GET_FUND_PRICE, fund.getId()));
                     }
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
     }

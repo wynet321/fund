@@ -1,11 +1,17 @@
 package net.soryu.fund.entity;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.sql.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-
+@Getter
+@Setter
+@NoArgsConstructor
 @Embeddable
 public class PriceIdentity implements Serializable {
 
@@ -14,30 +20,10 @@ public class PriceIdentity implements Serializable {
     @Column(name = "fund_id")
     private String fundId;
     private Date date;
-
-    public PriceIdentity() {
-        
-    }
     
     public PriceIdentity(String fundId, Date date) {
         this.date = date;
         this.fundId = fundId;
-    }
-
-    public String getFundId() {
-        return fundId;
-    }
-
-    public void setFundId(String fundId) {
-        this.fundId = fundId;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
     }
 
     @Override

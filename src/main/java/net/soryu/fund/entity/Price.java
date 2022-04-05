@@ -1,12 +1,16 @@
 package net.soryu.fund.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "fund_price")
 public class Price {
@@ -24,45 +28,4 @@ public class Price {
 
     @Column(name = "accumulated_price")
     private BigDecimal accumulatedPrice;
-
-    public PriceIdentity getPriceIdentity() {
-        return priceIdentity;
-    }
-
-    public void setPriceIdentity(PriceIdentity priceIdentity) {
-        this.priceIdentity = priceIdentity;
-    }
-
-    public BigDecimal getReturnOfTenKilo() {
-        return returnOfTenKilo;
-    }
-
-    public void setReturnOfTenKilo(BigDecimal returnOfTenKilo) {
-        this.returnOfTenKilo = returnOfTenKilo;
-    }
-
-    public BigDecimal getSevenDayAnnualizedRateOfReturn() {
-        return sevenDayAnnualizedRateOfReturn;
-    }
-
-    public void setSevenDayAnnualizedRateOfReturn(BigDecimal sevenDayAnnualizedRateOfReturn) {
-        this.sevenDayAnnualizedRateOfReturn = sevenDayAnnualizedRateOfReturn;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public BigDecimal getAccumulatedPrice() {
-        return accumulatedPrice;
-    }
-
-    public void setAccumulatedPrice(BigDecimal accumulatedPrice) {
-        this.accumulatedPrice = accumulatedPrice;
-    }
-    
 }

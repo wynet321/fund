@@ -14,8 +14,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+
 @Service
-public class RateServiceImpl extends abstractServiceImpl implements RateService {
+public class RateServiceImpl implements RateService {
 
     @Resource
     private MonthRateRepo monthRateRepo;

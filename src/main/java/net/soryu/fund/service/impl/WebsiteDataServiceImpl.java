@@ -4,11 +4,12 @@ import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
+import lombok.extern.log4j.Log4j2;
 import net.soryu.fund.entity.Company;
 import net.soryu.fund.entity.Fund;
 import net.soryu.fund.entity.Price;
 import net.soryu.fund.entity.PriceIdentity;
-import net.soryu.fund.repository.FundRepo;
+import net.soryu.fund.service.FundService;
 import net.soryu.fund.service.WebsiteDataService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,32 +24,33 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+@Log4j2
 @Service
-public class WebsiteDataServiceImpl extends abstractServiceImpl implements WebsiteDataService {
+public class WebsiteDataServiceImpl implements WebsiteDataService {
 
     @Resource
-    private FundRepo fundRepo;
+    private FundService fundService;
 
     public WebsiteDataServiceImpl() {
         Unirest.config().defaultBaseUrl("http://eid.csrc.gov.cn/");
+        Unirest.config().concurrency(200, 50);
     }
 
     @Override
     public List<String> getCompanyIds() throws Exception {
-        logger.debug("Start to get company id list...");
+        log.debug("Start to get company id list...");
         JsonNode pagedCompanies = Unirest.get("/fund/disclose/fund_compay_affiche.do").queryString("type", "4040-1010").asJson().getBody();
         JSONArray sourceCompanies = pagedCompanies.getObject().getJSONArray("aaData");
         List<String> companyIds = new LinkedList<String>();
         for (Object company : sourceCompanies) {
             companyIds.add(((JSONObject) company).getString("code"));
         }
-        logger.debug("Completed getting company id list.");
+        log.debug("Completed getting company id list.");
         return companyIds;
     }
 
@@ -59,7 +61,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("type", "4040-1010");
         parameters.put("code", targetCompany.getId());
-        logger.debug("Start to get company detail for " + targetCompany.getName());
+        log.debug("Start to get company detail for " + targetCompany.getName());
         JsonNode companyDetail = Unirest.get("/fund/disclose/fund_compay_detail.do").queryString(parameters).asJson()
                 .getBody();
         targetCompany.setName(companyDetail.getObject().getJSONObject("fundCompany").get("cname").toString());
@@ -67,7 +69,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
         targetCompany.setCreatedOn((new SimpleDateFormat("yyyy-MM-dd")).parse(companyDetail.getObject().getJSONObject("fundCompany").get("foundDate")
                 .toString()));
         targetCompany.setAddress(companyDetail.getObject().getJSONObject("fundCompany").get("officeArea").toString());
-        logger.debug("Completed getting company detail for " + targetCompany.getName());
+        log.debug("Completed getting company detail for " + targetCompany.getName());
         return targetCompany;
     }
 
@@ -76,7 +78,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
         int index = 0;
         int totalCount = 1;
         List<Fund> funds = new LinkedList<Fund>();
-        logger.debug("Start to get fund list for " + companyAbbr);
+        log.debug("Start to get fund list for " + companyAbbr);
         while (index < totalCount) {
             JsonNode node = Unirest.get(
                     "/fund/disclose/advanced_search_fund.do?aoData=%5B%7B%22name%22%3A%22sEcho%22%2C%22value%22%3A1%7D%2C%7B%22name%22%3A%22iColumns%22%2C%22value%22%3A4%7D"
@@ -102,7 +104,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
             totalCount = node.getObject().getInt("iTotalRecords");
             index += 20;
         }
-        logger.debug("Completed getting " + totalCount + " funds for Company " + companyAbbr);
+        log.debug("Completed getting " + totalCount + " funds for Company " + companyAbbr);
         return funds;
     }
 
@@ -130,7 +132,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
                 }
                 prices.add(getCurrencyFundPrice(rowElements, page));
             }
-            logger.debug("Retrieved page " + page + " price for fund " + fund.getName());
+            log.debug("Retrieved page " + page + " price for fund " + fund.getName());
             return prices;
         } else {
             // determine column index by analyzing header only on noncurrency fund
@@ -144,7 +146,7 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
                 }
                 prices.add(getNonCurrencyFundPrice(rowElements, nonCurrencyFundFieldIndex, page));
             }
-            logger.debug("Retrived page " + page + " price for fund " + fund.getName());
+            log.debug("Retrieved page " + page + " price for fund " + fund.getName());
             return prices;
         }
     }
@@ -214,13 +216,11 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
     }
 
     private void addParentFund(Elements elementTds) throws Exception {
-        Optional<Fund> parent = fundRepo.findById(elementTds.get(0).text());
-        Fund parentFund = parent.isPresent() ? parent.get() : null;
-        if (!parent.isPresent()) {
-            logger.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");
+        Fund parentFund = fundService.findById(elementTds.get(0).text());
+        if (parentFund == null) {
+            log.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");
         }
-        Optional<Fund> original = fundRepo.findById(elementTds.get(1).text());
-        Fund originalFund = original.isPresent() ? original.get() : null;
+        Fund originalFund = fundService.findById(elementTds.get(1).text());
         if (originalFund == null) {
             // new fund
             Fund newFund = new Fund();
@@ -229,13 +229,10 @@ public class WebsiteDataServiceImpl extends abstractServiceImpl implements Websi
             newFund.setCompanyId(parentFund.getCompanyId());
             newFund.setType(parentFund.getType());
             newFund.setParentId(elementTds.get(0).text());
-            fundRepo.save(newFund);
+            fundService.create(newFund);
         } else {
             originalFund.setName(elementTds.get(2).text());
-            fundRepo.save(originalFund);
+            fundService.create(originalFund);
         }
     }
-
-
-
 }

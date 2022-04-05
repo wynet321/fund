@@ -14,7 +14,7 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 @Service
-public class CompanyServiceImpl extends abstractServiceImpl implements CompanyService {
+public class CompanyServiceImpl implements CompanyService {
 
     @Resource
     private CompanyRepo companyRepo;
