@@ -46,7 +46,7 @@
         </encoder>
 	</appender>
 
-	<logger name="net.soryu" level="INFO" additivity="false">
+	<logger name="net.canglong" level="INFO" additivity="false">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="FILE" />
