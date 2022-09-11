@@ -60,10 +60,12 @@ public class JobServiceImpl implements JobService {
     @Override
     public Status getPriceRetrievalJobStatus() throws Exception {
         Status status = new Status();
-        status.setLeftCount(executor.getThreadPoolExecutor().getQueue().size());
-        status.setAliveThreadCount(executor.getActiveCount());
-        status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
-        status.setStopped(executor.getThreadPoolExecutor().isTerminated());
+        if(executor!=null) {
+            status.setLeftCount(executor.getThreadPoolExecutor().getQueue().size());
+            status.setAliveThreadCount(executor.getActiveCount());
+            status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
+            status.setStopped(executor.getThreadPoolExecutor().isTerminated());
+        }
         return status;
     }
 
@@ -77,8 +79,8 @@ public class JobServiceImpl implements JobService {
 
     class Task implements Runnable {
 
-        private String id;
-        private int jobType;
+        private final String id;
+        private final int jobType;
 
         public Task(int jobType, String id) {
             this.jobType = jobType;

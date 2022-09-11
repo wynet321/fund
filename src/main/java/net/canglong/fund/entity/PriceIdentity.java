@@ -50,11 +50,8 @@ public class PriceIdentity implements Serializable {
         } else if (!date.equals(other.date))
             return false;
         if (fundId == null) {
-            if (other.fundId != null)
-                return false;
-        } else if (!fundId.equals(other.fundId))
-            return false;
-        return true;
+            return other.fundId == null;
+        } else return fundId.equals(other.fundId);
     }
 
 

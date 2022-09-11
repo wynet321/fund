@@ -44,9 +44,7 @@ public class YearRateIdentity implements Serializable {
                 return false;
         } else if (!fundId.equals(other.fundId))
             return false;
-        if (year != other.year)
-            return false;
-        return true;
+        return year == other.year;
     }
 
 }

@@ -44,8 +44,6 @@ public class MonthRateIdentity implements Serializable {
                 return false;
         } else if (!fundId.equals(other.fundId))
             return false;
-        if (month != other.month)
-            return false;
-        return true;
+        return month == other.month;
     }
 }

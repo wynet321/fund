@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface FundRepo extends JpaRepository<Fund, String> {
 
     @Query("select entity from Fund entity where company_id=?1")
-    public Page<Fund> findAllByCompanyId(String companyId, Pageable pageable);
+    Page<Fund> findAllByCompanyId(String companyId, Pageable pageable);
 
-    public Fund findByName(String name);
+    Fund findByName(String name);
 }

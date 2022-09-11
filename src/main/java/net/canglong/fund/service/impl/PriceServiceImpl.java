@@ -66,7 +66,7 @@ public class PriceServiceImpl implements PriceService {
                     log.debug(fund.getName() + " completed " + count + " records.");
                 }
             } while (!prices.isEmpty());
-            log.info(fund.getName() + " total " + count + " records.");
+            log.debug(fund.getName() + " total " + count + " records.");
             fund.setCurrentPage(page - 1);
             fundService.create(fund);
         }
