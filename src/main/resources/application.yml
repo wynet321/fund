@@ -7,7 +7,7 @@ spring:
   datasource:
     sql-script-encoding: UTF-8
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/soryu?useSsl=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    url: jdbc:mariadb://localhost:3306/canglong?useSsl=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
     username: root
     password: passw0rd
   jpa:
@@ -36,6 +36,5 @@ server:
   servlet:
     contextPath: /fund
   port: 9000
-  thread-count: 50
 
   

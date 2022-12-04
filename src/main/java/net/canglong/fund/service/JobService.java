@@ -4,7 +4,7 @@ import net.canglong.fund.entity.Status;
 
 public interface JobService {
 
-    Status startPriceRetrievalJob() throws Exception;
+    Status startPriceRetrievalJob(int threadCount) throws Exception;
 
     Status getPriceRetrievalJobStatus() throws Exception;
     

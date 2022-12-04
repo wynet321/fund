@@ -4,18 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
 import net.canglong.fund.entity.Status;
-import net.canglong.fund.service.CompanyService;
-import net.canglong.fund.service.FundService;
-import net.canglong.fund.service.JobService;
-import net.canglong.fund.service.PriceService;
-import net.canglong.fund.service.WebsiteDataService;
-import org.springframework.beans.factory.annotation.Value;
+import net.canglong.fund.service.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 import javax.annotation.Resource;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -31,15 +25,13 @@ public class JobServiceImpl implements JobService {
     private FundService fundService;
     @Resource
     private CompanyService companyService;
-    @Value("${server.thread-count}")
-    private int threadCount;
     private final static int GET_FUND_LIST = 0;
     private final static int GET_FUND_PRICE = 1;
 
     @Override
-    public Status startPriceRetrievalJob() throws Exception {
+    public Status startPriceRetrievalJob(int threadCount) throws Exception {
         log.info("Website retrieval thread count is " + threadCount);
-        if (executor == null) {
+        if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
             executor = new ThreadPoolTaskExecutor();
             executor.setCorePoolSize(threadCount);
             executor.setThreadNamePrefix("Website retrieval thread pool");
@@ -51,7 +43,9 @@ public class JobServiceImpl implements JobService {
             log.info("Totally found " + companyIds.size() + " companies.");
             startTime = System.currentTimeMillis();
             for (String id : companyIds) {
-                executor.execute(new Task(GET_FUND_LIST, id));
+                if (!executor.getThreadPoolExecutor().isShutdown()) {
+                    executor.execute(new Task(GET_FUND_LIST, id));
+                }
             }
         }
         return getPriceRetrievalJobStatus();
@@ -60,19 +54,20 @@ public class JobServiceImpl implements JobService {
     @Override
     public Status getPriceRetrievalJobStatus() throws Exception {
         Status status = new Status();
-        if(executor!=null) {
+        if (executor != null) {
             status.setLeftCount(executor.getThreadPoolExecutor().getQueue().size());
             status.setAliveThreadCount(executor.getActiveCount());
             status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
-            status.setStopped(executor.getThreadPoolExecutor().isTerminated());
+            status.setTerminated(executor.getThreadPoolExecutor().isTerminated());
+            status.setTaskCount(executor.getThreadPoolExecutor().getTaskCount());
         }
         return status;
     }
 
     @Override
     public boolean stopPriceRetrievalJob() throws Exception {
-        executor.shutdown();
         executor.getThreadPoolExecutor().getQueue().clear();
+        executor.shutdown();
         log.info("executor is terminating...");
         return true;
     }
@@ -97,7 +92,9 @@ public class JobServiceImpl implements JobService {
                     List<Fund> fundList = fundService.create(dataService.getFunds(id, savedCompany.getAbbr()));
                     log.info("Imported fund list for " + savedCompany.getName() + ". Total funds: " + fundList.size());
                     for (Fund fund : fundList) {
-                        executor.execute(new Task(GET_FUND_PRICE, fund.getId()));
+                        if (!executor.getThreadPoolExecutor().isShutdown()) {
+                            executor.execute(new Task(GET_FUND_PRICE, fund.getId()));
+                        }
                     }
                 }
             } catch (Exception e) {
