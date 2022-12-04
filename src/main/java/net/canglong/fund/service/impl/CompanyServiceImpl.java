@@ -3,23 +3,19 @@ package net.canglong.fund.service.impl;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.repository.CompanyRepo;
 import net.canglong.fund.service.CompanyService;
-import net.canglong.fund.service.WebsiteDataService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
-
-import javax.annotation.Resource;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
 
     @Resource
     private CompanyRepo companyRepo;
-    @Resource
-    private WebsiteDataService dataService;
 
     @Override
     public Page<Company> find(Pageable pageable) throws Exception {
@@ -37,23 +33,19 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Company update(Company company) throws Exception {
+    public Company update(Company company) {
         return companyRepo.save(company);
     }
 
     @Override
-    public List<Company> update(List<Company> companies) throws Exception {
+    public List<Company> update(List<Company> companies) {
         return companyRepo.saveAll(companies);
     }
 
     @Override
     public Company find(String id) throws Exception {
         Optional<Company> optional = companyRepo.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        } else {
-            return null;
-        }
+        return optional.orElse(null);
     }
 
 }

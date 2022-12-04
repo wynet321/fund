@@ -30,7 +30,7 @@ public class ScheduleTask {
                 log.info("*******************");
                 log.info("Retrieval job was terminated.");
                 log.info("*******************");
-            } else if(status.getTaskCount()>0){
+            } else if (status.getTaskCount() > 0) {
                 log.info("*******************");
                 log.info(String.format("Left companies: %s", status.getLeftCount()));
                 log.info(String.format("Elapse Time: %s", status.getElapseTime()));

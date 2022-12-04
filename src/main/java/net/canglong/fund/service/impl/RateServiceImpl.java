@@ -5,14 +5,12 @@ import net.canglong.fund.entity.YearRate;
 import net.canglong.fund.repository.MonthRateRepo;
 import net.canglong.fund.repository.YearRateRepo;
 import net.canglong.fund.service.FundService;
-import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.RateService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;
-
-import javax.annotation.Resource;
 
 
 @Service
@@ -23,12 +21,10 @@ public class RateServiceImpl implements RateService {
     @Resource
     private YearRateRepo yearRateRepo;
     @Resource
-    private PriceService priceService;
-    @Resource
     private FundService fundService;
 
     @Override
-    public List<MonthRate> getMonthRateByFundId(String fundId) throws Exception {
+    public List<MonthRate> getMonthRateByFundId(String fundId) {
         return monthRateRepo.findAllById(fundId);
     }
 
@@ -45,7 +41,8 @@ public class RateServiceImpl implements RateService {
         return true;
     }
 
-    private void generateStatisticData(String fundId, LocalDate statisticDueDate) throws Exception {
+    private void generateStatisticData(String fundId, LocalDate statisticDueDate) {
+        // TODO Auto-generated method stub
         // List<FundPrice> fundPrices = priceService.findByFundId(fundId, statisticDueDate);
         // for(FundPrice price:fundPrices) {
         //
@@ -53,13 +50,13 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
-    public boolean generate(boolean refreshPreviousData) throws Exception {
+    public boolean generate(boolean refreshPreviousData) {
         // TODO Auto-generated method stub
         return false;
     }
 
     @Override
-    public List<YearRate> getYearRateByFundId(String fundId) throws Exception {
+    public List<YearRate> getYearRateByFundId(String fundId) {
         return yearRateRepo.findAllById(fundId);
     }
 

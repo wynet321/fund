@@ -19,22 +19,18 @@ public class FundServiceImpl implements FundService {
     private FundRepo fundRepo;
 
     @Override
-    public Page<Fund> get(Pageable pageable) throws Exception {
+    public Page<Fund> get(Pageable pageable) {
         return fundRepo.findAll(pageable);
     }
 
     @Override
-    public Fund findById(String id) throws Exception {
+    public Fund findById(String id) {
         Optional<Fund> optional = fundRepo.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        } else {
-            return null;
-        }
+        return optional.orElse(null);
     }
 
     @Override
-    public Page<Fund> findByCompanyId(String companyId, Pageable pageable) throws Exception {
+    public Page<Fund> findByCompanyId(String companyId, Pageable pageable) {
         return fundRepo.findAllByCompanyId(companyId, pageable);
     }
 
@@ -44,7 +40,7 @@ public class FundServiceImpl implements FundService {
     }
 
     @Override
-    public Fund update(Fund fund) throws Exception {
+    public Fund update(Fund fund) {
         return fundRepo.save(fund);
     }
 
@@ -53,11 +49,11 @@ public class FundServiceImpl implements FundService {
         return fundRepo.saveAll(funds);
     }
 
-    public List<Fund> findAll() throws Exception {
+    public List<Fund> findAll() {
         return fundRepo.findAll();
     }
 
-    public Fund findByName(String name) throws Exception {
+    public Fund findByName(String name) {
         return fundRepo.findByName(name);
     }
 }

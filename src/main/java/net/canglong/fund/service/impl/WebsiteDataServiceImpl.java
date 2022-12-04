@@ -42,11 +42,11 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     }
 
     @Override
-    public List<String> getCompanyIds() throws Exception {
+    public List<String> getCompanyIds() {
         log.debug("Start to get company id list...");
         JsonNode pagedCompanies = Unirest.get("/fund/disclose/fund_compay_affiche.do").queryString("type", "4040-1010").asJson().getBody();
         JSONArray sourceCompanies = pagedCompanies.getObject().getJSONArray("aaData");
-        List<String> companyIds = new LinkedList<String>();
+        List<String> companyIds = new LinkedList<>();
         for (Object company : sourceCompanies) {
             companyIds.add(((JSONObject) company).getString("code"));
         }
@@ -58,7 +58,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     public Company getCompany(String companyId) throws Exception {
         Company targetCompany = new Company();
         targetCompany.setId(companyId);
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<>();
         parameters.put("type", "4040-1010");
         parameters.put("code", targetCompany.getId());
         log.debug("Start to get company detail for " + targetCompany.getName());
@@ -74,10 +74,10 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     }
 
     @Override
-    public List<Fund> getFunds(String companyId, String companyAbbr) throws Exception {
+    public List<Fund> getFunds(String companyId, String companyAbbr) {
         int index = 0;
         int totalCount = 1;
-        List<Fund> funds = new LinkedList<Fund>();
+        List<Fund> funds = new LinkedList<>();
         log.debug("Start to get fund list for " + companyAbbr);
         while (index < totalCount) {
             JsonNode node = Unirest.get(
@@ -113,7 +113,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         boolean isCurrencyFund = fund.getType().equals("货币型");
         String html = Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
         Document doc = Jsoup.parse(html);
-        List<Price> prices = new LinkedList<Price>();
+        List<Price> prices = new LinkedList<>();
         Elements header = doc.getElementsByAttributeValueMatching("class", "cc");
         if (header.isEmpty()) {
             return prices;
@@ -132,10 +132,8 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
                 }
                 prices.add(getCurrencyFundPrice(rowElements, page));
             }
-            log.debug("Retrieved page " + page + " price for fund " + fund.getName());
-            return prices;
         } else {
-            // determine column index by analyzing header only on noncurrency fund
+            // determine column index by analyzing header only on non currency fund
             Elements headerElements = header.get(0).getElementsByTag("td");
             int[] nonCurrencyFundFieldIndex = getFieldIndex(headerElements);
             for (Element element : bodyElements) {
@@ -146,9 +144,9 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
                 }
                 prices.add(getNonCurrencyFundPrice(rowElements, nonCurrencyFundFieldIndex, page));
             }
-            log.debug("Retrieved page " + page + " price for fund " + fund.getName());
-            return prices;
         }
+        log.debug("Retrieved page " + page + " price for fund " + fund.getName());
+        return prices;
     }
 
     private int[] getFieldIndex(Elements elements) {
@@ -179,7 +177,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     }
 
     private Price getCurrencyFundPrice(Elements elements, int page) throws Exception {
-        Pattern pattern = Pattern.compile("[\\d]*\\.[\\d]{1,4}");
+        Pattern pattern = Pattern.compile("\\d*\\.\\d{1,4}");
         Price price = new Price();
         if (elements.get(1).text().equals("-")) {
             // No parent fund
@@ -198,7 +196,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     }
 
     private Price getNonCurrencyFundPrice(Elements elements, int[] fieldIndex, int page) throws Exception {
-        Pattern pattern = Pattern.compile("[\\d]*\\.[\\d]{1,4}");
+        Pattern pattern = Pattern.compile("\\d*\\.\\d{1,4}");
         Price price = new Price();
         if (elements.get(fieldIndex[1]).text().equals("-")) {
             price.setPriceIdentity(new PriceIdentity(elements.get(fieldIndex[0]).text(), Date.valueOf(elements.get(fieldIndex[5]).text())));
@@ -219,20 +217,21 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         Fund parentFund = fundService.findById(elementTds.get(0).text());
         if (parentFund == null) {
             log.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");
-        }
-        Fund originalFund = fundService.findById(elementTds.get(1).text());
-        if (originalFund == null) {
-            // new fund
-            Fund newFund = new Fund();
-            newFund.setId(elementTds.get(1).text());
-            newFund.setName(elementTds.get(2).text());
-            newFund.setCompanyId(parentFund.getCompanyId());
-            newFund.setType(parentFund.getType());
-            newFund.setParentId(elementTds.get(0).text());
-            fundService.create(newFund);
-        } else {
-            originalFund.setName(elementTds.get(2).text());
-            fundService.create(originalFund);
+        }else {
+            Fund originalFund = fundService.findById(elementTds.get(1).text());
+            if (originalFund == null) {
+                // new fund
+                Fund newFund = new Fund();
+                newFund.setId(elementTds.get(1).text());
+                newFund.setName(elementTds.get(2).text());
+                newFund.setCompanyId(parentFund.getCompanyId());
+                newFund.setType(parentFund.getType());
+                newFund.setParentId(elementTds.get(0).text());
+                fundService.create(newFund);
+            } else {
+                originalFund.setName(elementTds.get(2).text());
+                fundService.create(originalFund);
+            }
         }
     }
 }

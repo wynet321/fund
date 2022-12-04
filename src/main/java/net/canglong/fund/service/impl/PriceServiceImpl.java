@@ -6,7 +6,6 @@ import net.canglong.fund.entity.MonthAveragePrice;
 import net.canglong.fund.entity.Price;
 import net.canglong.fund.entity.PriceIdentity;
 import net.canglong.fund.repository.PriceRepo;
-import net.canglong.fund.service.CompanyService;
 import net.canglong.fund.service.FundService;
 import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.WebsiteDataService;
@@ -15,10 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;
-
-import javax.annotation.Resource;
 
 @Log4j2
 @Service
@@ -30,8 +28,6 @@ public class PriceServiceImpl implements PriceService {
     private WebsiteDataService dataService;
     @Resource
     private FundService fundService;
-    @Resource
-    private CompanyService companyService;
 
     @Override
     public Page<Price> findByName(String name, Pageable pageable) throws Exception {
@@ -45,13 +41,13 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Page<Price> findByFundId(String id, Pageable pageable) throws Exception {
+    public Page<Price> findByFundId(String id, Pageable pageable) {
         return priceRepo.find(id, pageable);
     }
 
     @Override
     public Integer create(String fundId) throws Exception {
-        int page = 0;
+        int page;
         int count = 0;
         Fund fund = fundService.findById(fundId);
         if (fund != null) {
@@ -79,12 +75,12 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate) throws Exception {
+    public List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate) {
         return priceRepo.findAllMonthAveragePriceByFundId(fundId, startDate);
     }
 
     @Override
-    public Price findByFundIdDate(String id, LocalDate date) throws Exception {
+    public Price findByFundIdDate(String id, LocalDate date) {
         return priceRepo.find(id, date);
     }
 

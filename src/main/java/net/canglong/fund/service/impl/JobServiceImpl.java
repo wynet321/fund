@@ -52,7 +52,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Status getPriceRetrievalJobStatus() throws Exception {
+    public Status getPriceRetrievalJobStatus() {
         Status status = new Status();
         if (executor != null) {
             status.setLeftCount(executor.getThreadPoolExecutor().getQueue().size());
@@ -65,7 +65,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public boolean stopPriceRetrievalJob() throws Exception {
+    public boolean stopPriceRetrievalJob() {
         executor.getThreadPoolExecutor().getQueue().clear();
         executor.shutdown();
         log.info("executor is terminating...");
@@ -96,6 +96,8 @@ public class JobServiceImpl implements JobService {
                             executor.execute(new Task(GET_FUND_PRICE, fund.getId()));
                         }
                     }
+                    executor.shutdown();
+                    log.info("executor terminated.");
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
