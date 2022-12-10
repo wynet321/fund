@@ -12,17 +12,17 @@ import javax.transaction.Transactional;
 
 public interface PriceService {
 
-    Page<Price> findByName(String Name, Pageable pageable) throws Exception;
+    Page<Price> findByName(String Name, Pageable pageable);
 
-    Page<Price> findByFundId(String id, Pageable pageable) throws Exception;
+    Page<Price> findByFundId(String id, Pageable pageable);
 
-    Price findByFundIdDate(String id, LocalDate date) throws Exception;
+    Price findByFundIdDate(String id, LocalDate date);
 
-    Page<Price> find(String id, LocalDate startDate, Pageable pageable) throws Exception;
+    Page<Price> find(String id, LocalDate startDate, Pageable pageable);
 
-    List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate) throws Exception;
+    List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate);
     
     @Transactional
-    Integer create(String fundId) throws Exception;
+    Integer create(String fundId);
 
 }

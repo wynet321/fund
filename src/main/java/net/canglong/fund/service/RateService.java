@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface RateService {
 
-    List<MonthRate> getMonthRateByFundId(String fundId) throws Exception;
+    List<MonthRate> getMonthRateByFundId(String fundId);
     
-    List<YearRate> getYearRateByFundId(String fundId) throws Exception;
+    List<YearRate> getYearRateByFundId(String fundId);
 
-    boolean generate(String fundId, boolean refreshPreviousData) throws Exception;
+    void generate(String fundId, boolean refreshPreviousData);
 
-    boolean generate(boolean refreshPreviousData) throws Exception;
+    void generate(boolean refreshPreviousData);
 }

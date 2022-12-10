@@ -18,17 +18,17 @@ public class CompanyServiceImpl implements CompanyService {
     private CompanyRepo companyRepo;
 
     @Override
-    public Page<Company> find(Pageable pageable) throws Exception {
+    public Page<Company> find(Pageable pageable) {
         return companyRepo.findAll(pageable);
     }
 
     @Override
-    public Company create(Company company) throws Exception {
+    public Company create(Company company) {
         return companyRepo.save(company);
     }
 
     @Override
-    public List<Company> create(List<Company> companies) throws Exception {
+    public List<Company> create(List<Company> companies) {
         return companyRepo.saveAll(companies);
     }
 
@@ -43,7 +43,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public Company find(String id) throws Exception {
+    public Company find(String id) {
         Optional<Company> optional = companyRepo.findById(id);
         return optional.orElse(null);
     }

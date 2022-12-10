@@ -7,12 +7,15 @@ import net.canglong.fund.entity.Price;
 import java.util.List;
 
 public interface WebsiteDataService {
-    List<String> getCompanyIds() throws Exception;
+    List<String> getCompanyIds();
 
-    List<Fund> getFunds(String companyId, String companyAbbr) throws Exception;
-
-    List<Price> getPrices(Fund fund, int page) throws Exception;
+    List<Fund> getFunds(String companyId, String companyAbbr);
 
     Company getCompany(String companyId) throws Exception;
 
+    String getPriceWebPage(Fund fund, int page);
+
+    boolean containsPrice(String html);
+
+    List<Price> getPrices(String html, Fund fund, int page);
 }

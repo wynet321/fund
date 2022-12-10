@@ -16,12 +16,12 @@ public class StatisticController {
     private RateService rateService;
 
     @GetMapping(value="/month/{fundId}")
-    public Object getMonthRateByFundId(@PathVariable("id") String fundId) throws Exception {
+    public Object getMonthRateByFundId(@PathVariable("id") String fundId) {
         return rateService.getMonthRateByFundId(fundId);
     }
     
     @GetMapping(value="/year/{fundId}")
-    public Object getYearRateByFundId(String fundId) throws Exception {
+    public Object getYearRateByFundId(String fundId) {
         return rateService.getYearRateByFundId(fundId);
     }
 

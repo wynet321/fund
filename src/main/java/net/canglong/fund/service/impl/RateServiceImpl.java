@@ -29,7 +29,7 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
-    public boolean generate(String fundId, boolean refreshPreviousData) throws Exception {
+    public void generate(String fundId, boolean refreshPreviousData) {
         if (refreshPreviousData) {
             generateStatisticData(fundId, LocalDate.of(1970, 1, 1));
         } else {
@@ -38,21 +38,15 @@ public class RateServiceImpl implements RateService {
                 generateStatisticData(fundId, statisticDueDate);
             }
         }
-        return true;
     }
 
     private void generateStatisticData(String fundId, LocalDate statisticDueDate) {
         // TODO Auto-generated method stub
-        // List<FundPrice> fundPrices = priceService.findByFundId(fundId, statisticDueDate);
-        // for(FundPrice price:fundPrices) {
-        //
-        // }
     }
 
     @Override
-    public boolean generate(boolean refreshPreviousData) {
+    public void generate(boolean refreshPreviousData) {
         // TODO Auto-generated method stub
-        return false;
     }
 
     @Override

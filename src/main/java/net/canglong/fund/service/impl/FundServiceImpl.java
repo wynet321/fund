@@ -35,7 +35,7 @@ public class FundServiceImpl implements FundService {
     }
 
     @Override
-    public Fund create(Fund fund) throws Exception {
+    public Fund create(Fund fund) {
         return fundRepo.save(fund);
     }
 
@@ -45,7 +45,7 @@ public class FundServiceImpl implements FundService {
     }
 
     @Override
-    public List<Fund> create(List<Fund> funds) throws Exception {
+    public List<Fund> create(List<Fund> funds) {
         return fundRepo.saveAll(funds);
     }
 

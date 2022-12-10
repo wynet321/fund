@@ -16,11 +16,8 @@ public class FundController {
     @Resource
     private FundService fundService;
 
-    @Resource
-    private CompanyService companyService;
-
     @GetMapping(value = "/{id}")
-    public Object find(@PathVariable("id") String id) throws Exception {
+    public Object find(@PathVariable("id") String id) {
         return fundService.findById(id);
     }
 

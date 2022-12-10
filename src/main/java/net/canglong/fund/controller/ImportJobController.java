@@ -13,20 +13,20 @@ public class ImportJobController {
     private JobService jobService;
 
     @PostMapping(value= {"/{threadCount}", ""})
-    public Object startImportJob(@PathVariable(name="threadCount", required = false) Integer threadCount) throws Exception {
+    public Object startImportJob(@PathVariable(name="threadCount", required = false) Integer threadCount) {
         if (threadCount==null) {
             return jobService.startPriceRetrievalJob(10);
         }
-        return jobService.startPriceRetrievalJob(threadCount.intValue());
+        return jobService.startPriceRetrievalJob(threadCount);
     }
 
     @GetMapping
-    public Object getJobStatus() throws Exception {
+    public Object getJobStatus() {
         return jobService.getPriceRetrievalJobStatus();
     }
 
     @DeleteMapping
-    public Object stopImportJob() throws Exception {
+    public Object stopImportJob() {
         return jobService.stopPriceRetrievalJob();
     }
 

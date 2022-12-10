@@ -18,12 +18,12 @@ public class ScheduleTask {
     private boolean terminated = false;
 
     @Scheduled(fixedRate = 86400000)
-    public void refresh() throws Exception {
+    public void refresh() {
 //        jobService.startPriceRetrievalJob(10);
     }
 
     @Scheduled(fixedRate = 60000)
-    public void reportStatus() throws Exception {
+    public void reportStatus() {
         Status status = jobService.getPriceRetrievalJobStatus();
         if (!terminated) {
             if (status.isTerminated()) {

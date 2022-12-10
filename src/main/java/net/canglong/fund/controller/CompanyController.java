@@ -25,19 +25,19 @@ public class CompanyController {
     private WebsiteDataService dataService;
 
     @GetMapping
-    public Object findAll(Pageable pageable) throws Exception {
+    public Object findAll(Pageable pageable) {
         return companyService.find(pageable);
     }
 
     @GetMapping(value = "/{id}")
-    public Object find(@PathVariable("id") String id) throws Exception {
+    public Object find(@PathVariable("id") String id) {
         return companyService.find(id);
     }
 
     @PostMapping(value = "/ids")
     public Object importAll() throws Exception {
         List<String> companyIds = dataService.getCompanyIds();
-        List<Company> companies = new LinkedList<Company>();
+        List<Company> companies = new LinkedList<>();
         for (String id : companyIds) {
             Company company = dataService.getCompany(id);
             companies.add(company);

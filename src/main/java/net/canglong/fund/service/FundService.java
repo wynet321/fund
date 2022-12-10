@@ -9,22 +9,22 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 public interface FundService {
-    Page<Fund> get(Pageable pageable) throws Exception;
+    Page<Fund> get(Pageable pageable);
 
-    Fund findById(String id) throws Exception;
+    Fund findById(String id);
 
-    Page<Fund> findByCompanyId(String companyId, Pageable pageable) throws Exception;
-
-    @Transactional
-    Fund create(Fund fund) throws Exception;
+    Page<Fund> findByCompanyId(String companyId, Pageable pageable);
 
     @Transactional
-    Fund update(Fund fund) throws Exception;
+    Fund create(Fund fund);
 
     @Transactional
-    List<Fund> create(List<Fund> funds) throws Exception;
+    Fund update(Fund fund);
 
-    List<Fund> findAll() throws Exception;
+    @Transactional
+    List<Fund> create(List<Fund> funds);
 
-    Fund findByName(String name) throws Exception;
+    List<Fund> findAll();
+
+    Fund findByName(String name);
 }

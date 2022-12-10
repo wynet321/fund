@@ -25,12 +25,12 @@ public class PriceServiceImpl implements PriceService {
     @Resource
     private PriceRepo priceRepo;
     @Resource
-    private WebsiteDataService dataService;
+    private WebsiteDataService websiteDataService;
     @Resource
     private FundService fundService;
 
     @Override
-    public Page<Price> findByName(String name, Pageable pageable) throws Exception {
+    public Page<Price> findByName(String name, Pageable pageable) {
         Fund fund = fundService.findByName(name);
         if (fund != null) {
             Price price = new Price();
@@ -46,7 +46,7 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Integer create(String fundId) throws Exception {
+    public Integer create(String fundId) {
         int page;
         int count = 0;
         Fund fund = fundService.findById(fundId);
@@ -54,14 +54,16 @@ public class PriceServiceImpl implements PriceService {
             page = fund.getCurrentPage();
             log.debug("Start to collect fund " + fund.getName());
             List<Price> prices;
+            String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
             do {
-                prices = dataService.getPrices(fund, page++);
+                prices = websiteDataService.getPrices(priceWebPage, fund, page-1);
                 prices = priceRepo.saveAll(prices);
                 count += prices.size();
                 if (count % 1000 == 0) {
                     log.debug(fund.getName() + " completed " + count + " records.");
                 }
-            } while (!prices.isEmpty());
+                priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
+            } while (websiteDataService.containsPrice(priceWebPage));
             log.debug(fund.getName() + " total " + count + " records.");
             fund.setCurrentPage(page - 1);
             fundService.create(fund);
@@ -70,7 +72,7 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Page<Price> find(String id, LocalDate startDate, Pageable pageable) throws Exception {
+    public Page<Price> find(String id, LocalDate startDate, Pageable pageable) {
         return priceRepo.find(id, startDate, pageable);
     }
 

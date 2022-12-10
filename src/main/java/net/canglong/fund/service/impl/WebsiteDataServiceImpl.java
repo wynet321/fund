@@ -108,10 +108,16 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         return funds;
     }
 
+    public String getPriceWebPage(Fund fund, int page) {
+        return Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
+    }
+
+    public boolean containsPrice(String html){
+        return html.contains("class=\"dd\"");
+    }
     @Override
-    public List<Price> getPrices(Fund fund, int page) throws Exception {
+    public List<Price> getPrices(String html, Fund fund, int page) {
         boolean isCurrencyFund = fund.getType().equals("货币型");
-        String html = Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
         Document doc = Jsoup.parse(html);
         List<Price> prices = new LinkedList<>();
         Elements header = doc.getElementsByAttributeValueMatching("class", "cc");
@@ -176,7 +182,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         return fieldIndex;
     }
 
-    private Price getCurrencyFundPrice(Elements elements, int page) throws Exception {
+    private Price getCurrencyFundPrice(Elements elements, int page) {
         Pattern pattern = Pattern.compile("\\d*\\.\\d{1,4}");
         Price price = new Price();
         if (elements.get(1).text().equals("-")) {
@@ -195,7 +201,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         return price;
     }
 
-    private Price getNonCurrencyFundPrice(Elements elements, int[] fieldIndex, int page) throws Exception {
+    private Price getNonCurrencyFundPrice(Elements elements, int[] fieldIndex, int page) {
         Pattern pattern = Pattern.compile("\\d*\\.\\d{1,4}");
         Price price = new Price();
         if (elements.get(fieldIndex[1]).text().equals("-")) {
@@ -213,7 +219,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         return price;
     }
 
-    private void addParentFund(Elements elementTds) throws Exception {
+    private void addParentFund(Elements elementTds) {
         Fund parentFund = fundService.findById(elementTds.get(0).text());
         if (parentFund == null) {
             log.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");

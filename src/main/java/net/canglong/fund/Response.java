@@ -17,7 +17,7 @@ public class Response {
     public void httpResponse() {}
 
     @Around("httpResponse()")
-    public ResponseObject handleController(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    public ResponseObject handleController(ProceedingJoinPoint proceedingJoinPoint) {
         ResponseObject responseObject = new ResponseObject();
         try {
             Object object = proceedingJoinPoint.proceed();
@@ -25,7 +25,7 @@ public class Response {
                 responseObject.setData(null);
                 responseObject.setSuccess(false);
             } else if (object instanceof Boolean) {
-                responseObject.setSuccess(((Boolean) object).booleanValue());
+                responseObject.setSuccess((Boolean) object);
             } else if (object instanceof Map) {
                 Map<?, ?> map = (Map<?, ?>) object;
                 responseObject.setSuccess(!map.isEmpty());

@@ -21,32 +21,29 @@ public class PriceController {
     private PriceService priceService;
 
     @GetMapping(value = "/{id}")
-    public Object get(@PathVariable("id") String id, Pageable pageable) throws Exception {
+    public Object get(@PathVariable("id") String id, Pageable pageable) {
         return priceService.findByFundId(id, pageable);
     }
 
     @GetMapping(value = "/month_avg/{id}/start/{date}")
     public Object getMonthAveragePrice(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE) LocalDate startDate)
-            throws Exception {
+            iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
         return priceService.findAllMonthAveragePriceByFundId(id, startDate);
     }
 
     @PostMapping(value = "/{id}")
-    public Object create(@PathVariable("id") String id) throws Exception {
+    public Object create(@PathVariable("id") String id) {
         return priceService.create(id);
     }
 
     @GetMapping(value = "/{id}/{date}")
-    public Object getByFundIdAndDate(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date)
-            throws Exception {
+    public Object getByFundIdAndDate(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return priceService.findByFundIdDate(id, date);
     }
 
     @GetMapping(value = "/{id}/start/{date}")
     public Object getPriceFromDate(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            Pageable pageable)
-            throws Exception {
+            Pageable pageable) {
         return priceService.find(id, startDate, pageable);
     }
 }

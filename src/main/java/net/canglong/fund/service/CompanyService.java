@@ -10,20 +10,20 @@ import javax.transaction.Transactional;
 
 public interface CompanyService {
 
-    Page<Company> find(Pageable pageable) throws Exception;
+    Page<Company> find(Pageable pageable);
 
-    Company find(String id) throws Exception;
-
-    @Transactional
-    Company create(Company company) throws Exception;
+    Company find(String id);
 
     @Transactional
-    List<Company> create(List<Company> companies) throws Exception;
+    Company create(Company company);
 
     @Transactional
-    Company update(Company company) throws Exception;
+    List<Company> create(List<Company> companies);
 
     @Transactional
-    List<Company> update(List<Company> companies) throws Exception;
+    Company update(Company company);
+
+    @Transactional
+    List<Company> update(List<Company> companies);
 
 }

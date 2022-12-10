@@ -12,8 +12,8 @@ import java.util.Map;
 public class HealthController {
 
     @GetMapping
-    public Object health() throws Exception {
-        Map<String, Boolean> health = new HashMap<String, Boolean>();
+    public Object health() {
+        Map<String, Boolean> health = new HashMap<>();
         health.put("health", true);
         return health;
     }
