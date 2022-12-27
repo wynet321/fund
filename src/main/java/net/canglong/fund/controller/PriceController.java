@@ -32,7 +32,7 @@ public class PriceController {
     }
 
     @PostMapping(value = "/{id}")
-    public Object create(@PathVariable("id") String id) {
+    public Object create(@PathVariable("id") String id) throws Exception {
         return priceService.create(id);
     }
 

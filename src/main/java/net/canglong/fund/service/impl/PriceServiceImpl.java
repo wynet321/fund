@@ -46,7 +46,7 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Integer create(String fundId) {
+    public Integer create(String fundId) throws Exception {
         int page;
         int count = 0;
         Fund fund = fundService.findById(fundId);
@@ -56,7 +56,7 @@ public class PriceServiceImpl implements PriceService {
             List<Price> prices;
             String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
             do {
-                prices = websiteDataService.getPrices(priceWebPage, fund, page-1);
+                prices = websiteDataService.getPrices(priceWebPage, fund, page - 1);
                 prices = priceRepo.saveAll(prices);
                 count += prices.size();
                 if (count % 1000 == 0) {
@@ -65,8 +65,11 @@ public class PriceServiceImpl implements PriceService {
                 priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
             } while (websiteDataService.containsPrice(priceWebPage));
             log.debug(fund.getName() + " total " + count + " records.");
+            log.info(fund.getName() + " page " + (page - 1) + " done.");
             fund.setCurrentPage(page - 1);
             fundService.create(fund);
+        } else {
+            throw new Exception("can't find the fund in DB.");
         }
         return count;
     }

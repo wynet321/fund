@@ -91,6 +91,7 @@ public class JobServiceImpl implements JobService {
             try {
                 if (jobType == GET_FUND_PRICE) {
                     priceService.create(id);
+                    Thread.sleep(10000);
                 } else if (jobType == GET_FUND_LIST) {
                     Company savedCompany = companyService.create(websiteDataService.getCompany(id));
                     List<Fund> fundList = fundService.create(websiteDataService.getFunds(id, savedCompany.getAbbr()));

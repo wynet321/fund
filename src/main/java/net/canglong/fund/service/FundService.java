@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+@SuppressWarnings("UnusedReturnValue")
 public interface FundService {
     Page<Fund> get(Pageable pageable);
 

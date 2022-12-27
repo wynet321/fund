@@ -23,6 +23,6 @@ public interface PriceService {
     List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate);
     
     @Transactional
-    Integer create(String fundId);
+    Integer create(String fundId) throws Exception;
 
 }

@@ -13,7 +13,7 @@ public interface WebsiteDataService {
 
     Company getCompany(String companyId) throws Exception;
 
-    String getPriceWebPage(Fund fund, int page);
+    String getPriceWebPage(Fund fund, int page) throws Exception;
 
     boolean containsPrice(String html);
 

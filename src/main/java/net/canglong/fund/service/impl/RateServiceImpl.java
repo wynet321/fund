@@ -34,7 +34,7 @@ public class RateServiceImpl implements RateService {
             generateStatisticData(fundId, LocalDate.of(1970, 1, 1));
         } else {
             LocalDate statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
-            if (LocalDate.now().compareTo(statisticDueDate) > 0) {
+            if (LocalDate.now().isAfter(statisticDueDate)) {
                 generateStatisticData(fundId, statisticDueDate);
             }
         }

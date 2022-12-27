@@ -17,6 +17,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -26,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
 
 @Log4j2
 @Service
@@ -81,16 +80,16 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         log.debug("Start to get fund list for " + companyAbbr);
         while (index < totalCount) {
             JsonNode node = Unirest.get(
-                    "/fund/disclose/advanced_search_fund.do?aoData=%5B%7B%22name%22%3A%22sEcho%22%2C%22value%22%3A1%7D%2C%7B%22name%22%3A%22iColumns%22%2C%22value%22%3A4%7D"
-                            + "%2C%7B%22name%22%3A%22sColumns%22%2C%22value%22%3A%22%2C%2C%2C%22%7D%2C%7B%22name%22%3A%22iDisplayStart%22%2C%22value%22%3A"
-                            + index
-                            + "%7D%2C%7B%22name%22%3A%22iDisplayLength%22%2C%22value%22%3A20%7D%2C%7B%22name%22%3A%22mDataProp_0%22%2C%22value%22%3A%22code%22%7D%2C%7B%22name%22%3A"
-                            + "%22mDataProp_1%22%2C%22value%22%3A%22shortName%22%7D%2C%7B%22name%22%3A%22mDataProp_2%22%2C%22value%22%3A%22fundCompany%22%7D%2C%7B%22name%22"
-                            + "%3A%22mDataProp_3%22%2C%22value%22%3A%22fundType%22%7D%2C%7B%22name%22%3A%22fundType%22%2C%22value%22%3A%22%22%7D%2C%7B%22name%22"
-                            + "%3A%22fundCompanyShortName%22%2C%22value%22%3A%22"
-                            + companyAbbr
-                            + "%22%7D%2C%7B%22name%22%3A%22fundCode%22%2C%22value%22%3A%22%22%7D%2C%7B%22name%22%3A"
-                            + "%22fundShortName%22%2C%22value%22%3A%22%22%7D%5D")
+                            "/fund/disclose/advanced_search_fund.do?aoData=%5B%7B%22name%22%3A%22sEcho%22%2C%22value%22%3A1%7D%2C%7B%22name%22%3A%22iColumns%22%2C%22value%22%3A4%7D"
+                                    + "%2C%7B%22name%22%3A%22sColumns%22%2C%22value%22%3A%22%2C%2C%2C%22%7D%2C%7B%22name%22%3A%22iDisplayStart%22%2C%22value%22%3A"
+                                    + index
+                                    + "%7D%2C%7B%22name%22%3A%22iDisplayLength%22%2C%22value%22%3A20%7D%2C%7B%22name%22%3A%22mDataProp_0%22%2C%22value%22%3A%22code%22%7D%2C%7B%22name%22%3A"
+                                    + "%22mDataProp_1%22%2C%22value%22%3A%22shortName%22%7D%2C%7B%22name%22%3A%22mDataProp_2%22%2C%22value%22%3A%22fundCompany%22%7D%2C%7B%22name%22"
+                                    + "%3A%22mDataProp_3%22%2C%22value%22%3A%22fundType%22%7D%2C%7B%22name%22%3A%22fundType%22%2C%22value%22%3A%22%22%7D%2C%7B%22name%22"
+                                    + "%3A%22fundCompanyShortName%22%2C%22value%22%3A%22"
+                                    + companyAbbr
+                                    + "%22%7D%2C%7B%22name%22%3A%22fundCode%22%2C%22value%22%3A%22%22%7D%2C%7B%22name%22%3A"
+                                    + "%22fundShortName%22%2C%22value%22%3A%22%22%7D%5D")
                     .asJson().getBody();
             JSONArray sourceFunds = node.getObject().getJSONArray("aaData");
             for (Object sourceFund : sourceFunds) {
@@ -108,13 +107,24 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         return funds;
     }
 
-    public String getPriceWebPage(Fund fund, int page) {
-        return Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
+    public String getPriceWebPage(Fund fund, int page) throws Exception {
+        try {
+            return Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
+        } catch (Exception e) {
+            try {
+                Thread.sleep(600000);
+                return Unirest.get("/fund/web/list_net.daily_report?1=1&fundCode=" + fund.getId() + "&limit=20&start=" + 20 * page).asString().getBody();
+            } catch (Exception ee) {
+                throw new Exception("Retry fetch website failed!");
+            }
+
+        }
     }
 
-    public boolean containsPrice(String html){
+    public boolean containsPrice(String html) {
         return html.contains("class=\"dd\"");
     }
+
     @Override
     public List<Price> getPrices(String html, Fund fund, int page) {
         boolean isCurrencyFund = fund.getType().equals("货币型");
@@ -223,7 +233,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         Fund parentFund = fundService.findById(elementTds.get(0).text());
         if (parentFund == null) {
             log.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");
-        }else {
+        } else {
             Fund originalFund = fundService.findById(elementTds.get(1).text());
             if (originalFund == null) {
                 // new fund

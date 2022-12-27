@@ -13,7 +13,7 @@ import java.util.Map;
 @Component
 public class Response {
 
-    @Pointcut("within(net.soryu.fund.controller.*)")
+    @Pointcut("within(net.canglong.fund.controller.*)")
     public void httpResponse() {}
 
     @Around("httpResponse()")
