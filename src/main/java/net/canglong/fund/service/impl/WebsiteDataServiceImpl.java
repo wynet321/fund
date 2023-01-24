@@ -122,6 +122,9 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     }
 
     public boolean containsPrice(String html) {
+        if (html==null){
+            return false;
+        }
         return html.contains("class=\"dd\"");
     }
 
