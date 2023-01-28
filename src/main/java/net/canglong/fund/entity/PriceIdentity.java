@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.sql.Date;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -19,10 +20,10 @@ public class PriceIdentity implements Serializable {
     
     @Column(name = "fund_id")
     private String fundId;
-    private Date date;
+    private LocalDate priceDate;
     
-    public PriceIdentity(String fundId, Date date) {
-        this.date = date;
+    public PriceIdentity(String fundId, LocalDate priceDate) {
+        this.priceDate = priceDate;
         this.fundId = fundId;
     }
 
@@ -30,7 +31,7 @@ public class PriceIdentity implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((date == null) ? 0 : date.hashCode());
+        result = prime * result + ((priceDate == null) ? 0 : priceDate.hashCode());
         result = prime * result + ((fundId == null) ? 0 : fundId.hashCode());
         return result;
     }
@@ -44,10 +45,10 @@ public class PriceIdentity implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         PriceIdentity other = (PriceIdentity) obj;
-        if (date == null) {
-            if (other.date != null)
+        if (priceDate == null) {
+            if (other.priceDate != null)
                 return false;
-        } else if (!date.equals(other.date))
+        } else if (!priceDate.equals(other.priceDate))
             return false;
         if (fundId == null) {
             return other.fundId == null;

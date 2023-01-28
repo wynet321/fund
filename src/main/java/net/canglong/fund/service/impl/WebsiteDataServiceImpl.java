@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.time.LocalDate;
 
 @Log4j2
 @Service
@@ -200,12 +201,12 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         Price price = new Price();
         if (elements.get(1).text().equals("-")) {
             // No parent fund
-            price.setPriceIdentity(new PriceIdentity(elements.get(0).text(), Date.valueOf(elements.get(8).text())));
+            price.setPriceIdentity(new PriceIdentity(elements.get(0).text(), LocalDate.parse(elements.get(8).text())));
         } else {
             if (page == 0) {
                 addParentFund(elements);
             }
-            price.setPriceIdentity(new PriceIdentity(elements.get(1).text(), Date.valueOf(elements.get(8).text())));
+            price.setPriceIdentity(new PriceIdentity(elements.get(1).text(), LocalDate.parse(elements.get(8).text())));
         }
         Matcher matcher = pattern.matcher(elements.get(3).text());
         price.setReturnOfTenKilo(matcher.find() ? new BigDecimal(matcher.group()) : BigDecimal.ZERO);
@@ -218,12 +219,12 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         Pattern pattern = Pattern.compile("\\d*\\.\\d{1,4}");
         Price price = new Price();
         if (elements.get(fieldIndex[1]).text().equals("-")) {
-            price.setPriceIdentity(new PriceIdentity(elements.get(fieldIndex[0]).text(), Date.valueOf(elements.get(fieldIndex[5]).text())));
+            price.setPriceIdentity(new PriceIdentity(elements.get(fieldIndex[0]).text(), LocalDate.parse(elements.get(fieldIndex[5]).text())));
         } else {
             if (page == 0) {
                 addParentFund(elements);
             }
-            price.setPriceIdentity(new PriceIdentity(elements.get(fieldIndex[1]).text(), Date.valueOf(elements.get(fieldIndex[5]).text())));
+            price.setPriceIdentity(new PriceIdentity(elements.get(fieldIndex[1]).text(), LocalDate.parse(elements.get(fieldIndex[5]).text())));
         }
         Matcher matcherAccumulatedPrice = pattern.matcher(elements.get(fieldIndex[4]).text());
         Matcher matcherPrice = pattern.matcher(elements.get(fieldIndex[3]).text());

@@ -4,6 +4,7 @@ import net.canglong.fund.entity.Fund;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -28,4 +29,5 @@ public interface FundService {
     List<Fund> findAll();
 
     Fund findByName(String name);
+
 }

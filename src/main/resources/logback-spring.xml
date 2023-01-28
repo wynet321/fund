@@ -39,11 +39,15 @@
         </encoder>
 	</appender>
 
-	<logger name="net.canglong" level="INFO" additivity="false">
+	<logger name="net.canglong" level="info" additivity="false">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="FILE" />
 	</logger>
+
+	<root level="debug">
+		<appender-ref ref="STDOUT" />
+	</root>
 
 <!--	<root>-->
 <!--		<appender-ref ref="STDOUT" />-->

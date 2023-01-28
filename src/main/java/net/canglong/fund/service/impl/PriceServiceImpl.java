@@ -9,14 +9,23 @@ import net.canglong.fund.repository.PriceRepo;
 import net.canglong.fund.service.FundService;
 import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.WebsiteDataService;
+import net.canglong.fund.vo.DatePriceIdentity;
+import net.canglong.fund.vo.FundPercentage;
+import net.canglong.fund.vo.PriceAtYearStart;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
 @Log4j2
 @Service
@@ -75,8 +84,43 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
+    public Object findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) throws Exception {
+        Price priceAtStartDate = priceRepo.find(id, startDate);
+        Price priceAtEndDate = priceRepo.find(id, endDate);
+        BigDecimal ratio = priceAtEndDate.getAccumulatedPrice().subtract(priceAtStartDate.getAccumulatedPrice()).divide(priceAtStartDate.getAccumulatedPrice(), 2, RoundingMode.HALF_UP);
+        DecimalFormat df = new DecimalFormat("0.00%");
+        String percentage = df.format(ratio);
+        Fund fund = fundService.findById(id);
+        FundPercentage fundPercentage = new FundPercentage(id, fund.getName(), percentage, startDate, endDate);
+        return fundPercentage;
+    }
+
+    @Override
+    public Object findStartDateById(String id) {
+        return priceRepo.findStartDateById(id);
+    }
+
+    @Override
+    public Object findPriceAtYearStartById(String id) {
+        Price priceAtFundCreation = priceRepo.findStartDateById(id);
+        LocalDate fundCreationDate = priceAtFundCreation.getPriceIdentity().getPriceDate();
+        LocalDate today = LocalDate.now();
+        int years = today.getYear() - fundCreationDate.getYear();
+        List<DatePriceIdentity> priceList = new ArrayList<DatePriceIdentity>();
+        priceList.add(new DatePriceIdentity(priceAtFundCreation.getPriceIdentity().getPriceDate(), priceAtFundCreation.getAccumulatedPrice()));
+        for (int i = 0; i < years; i++) {
+            LocalDate requestDate = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
+            Price requestPrice = priceRepo.find(id, requestDate);
+            priceList.add(new DatePriceIdentity(requestPrice.getPriceIdentity().getPriceDate(), requestPrice.getAccumulatedPrice()));
+        }
+        Fund fund = fundService.findById(id);
+        PriceAtYearStart priceAtYearStart = new PriceAtYearStart(id, fund.getName(), priceList);
+        return priceAtYearStart;
+    }
+
+    @Override
     public Page<Price> find(String id, LocalDate startDate, Pageable pageable) {
-        return priceRepo.find(id, startDate, pageable);
+        return priceRepo.findPriceSet(id, startDate, pageable);
     }
 
     @Override

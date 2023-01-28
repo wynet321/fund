@@ -25,4 +25,9 @@ public interface PriceService {
     @Transactional
     Integer create(String fundId) throws Exception;
 
+    Object findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) throws Exception;
+
+    Object findStartDateById(String id);
+
+    Object findPriceAtYearStartById(String id);
 }
