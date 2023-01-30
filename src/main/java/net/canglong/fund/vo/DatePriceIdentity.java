@@ -1,5 +1,6 @@
 package net.canglong.fund.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,11 +12,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Embeddable
+@AllArgsConstructor
+@NoArgsConstructor
 public class DatePriceIdentity {
     private LocalDate priceDate;
     private BigDecimal accumulatedPrice;
-    public DatePriceIdentity(LocalDate priceDate, BigDecimal accumulatedPrice){
-        this.priceDate=priceDate;
-        this.accumulatedPrice=accumulatedPrice;
-    }
 }

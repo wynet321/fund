@@ -33,7 +33,7 @@ public class PriceController {
 
     @GetMapping(value = "/{id}/{date}")
     public Object getByFundIdAndDate(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return priceService.findByFundIdDate(id, date);
+        return priceService.findLatestPrice(id, date);
     }
 
     @GetMapping(value = "/{id}/start/{date}")
@@ -53,7 +53,7 @@ public class PriceController {
     }
 
     @GetMapping(value="/{id}/priceAtYearStart")
-    public Object findPriceAtYearStartById(@PathVariable("id") String id){
-        return priceService.findPriceAtYearStartById(id);
+    public Object findYearPriceById(@PathVariable("id") String id){
+        return priceService.findYearPriceById(id);
     }
 }

@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface RateService {
 
-    List<MonthRate> getMonthRateByFundId(String fundId);
+    List<MonthRate> getMonthRateById(String fundId);
     
-    List<YearRate> getYearRateByFundId(String fundId);
+    List<YearRate> getYearRateById(String fundId);
 
-    void generate(String fundId, boolean refreshPreviousData);
+    Boolean generate(String fundId, boolean refreshPreviousData);
 
-    void generate(boolean refreshPreviousData);
+    Boolean generate(boolean refreshPreviousData);
 }

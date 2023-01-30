@@ -1,6 +1,7 @@
 package net.canglong.fund.entity;
 
 import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -11,14 +12,16 @@ import javax.persistence.Embeddable;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@AllArgsConstructor
 @Embeddable
+@NoArgsConstructor
 public class MonthRateIdentity implements Serializable {
 
     private static final long serialVersionUID = 5044068352262279471L;
 
     @Column(name = "fund_id")
     private String fundId;
+    private int year;
     private int month;
 
     @Override

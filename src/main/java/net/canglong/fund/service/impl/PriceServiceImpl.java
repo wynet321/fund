@@ -11,7 +11,8 @@ import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.WebsiteDataService;
 import net.canglong.fund.vo.DatePriceIdentity;
 import net.canglong.fund.vo.FundPercentage;
-import net.canglong.fund.vo.PriceAtYearStart;
+import net.canglong.fund.vo.MonthPrice;
+import net.canglong.fund.vo.YearPrice;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +52,7 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public Page<Price> findByFundId(String id, Pageable pageable) {
-        return priceRepo.find(id, pageable);
+        return priceRepo.findLatestPrice(id, pageable);
     }
 
     @Override
@@ -84,9 +85,9 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Object findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) throws Exception {
-        Price priceAtStartDate = priceRepo.find(id, startDate);
-        Price priceAtEndDate = priceRepo.find(id, endDate);
+    public FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) throws Exception {
+        Price priceAtStartDate = priceRepo.findLatestPrice(id, startDate);
+        Price priceAtEndDate = priceRepo.findLatestPrice(id, endDate);
         BigDecimal ratio = priceAtEndDate.getAccumulatedPrice().subtract(priceAtStartDate.getAccumulatedPrice()).divide(priceAtStartDate.getAccumulatedPrice(), 2, RoundingMode.HALF_UP);
         DecimalFormat df = new DecimalFormat("0.00%");
         String percentage = df.format(ratio);
@@ -96,26 +97,59 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Object findStartDateById(String id) {
-        return priceRepo.findStartDateById(id);
+    public Price findStartDateById(String id) {
+        return priceRepo.findPriceAtCreationById(id);
     }
 
     @Override
-    public Object findPriceAtYearStartById(String id) {
-        Price priceAtFundCreation = priceRepo.findStartDateById(id);
+    public YearPrice findYearPriceById(String id) {
+        Price priceAtFundCreation = priceRepo.findPriceAtCreationById(id);
+        Fund fund = fundService.findById(id);
+        if (priceAtFundCreation == null) {
+            return new YearPrice(id, fund.getName(), new ArrayList<DatePriceIdentity>());
+        }
         LocalDate fundCreationDate = priceAtFundCreation.getPriceIdentity().getPriceDate();
         LocalDate today = LocalDate.now();
         int years = today.getYear() - fundCreationDate.getYear();
         List<DatePriceIdentity> priceList = new ArrayList<DatePriceIdentity>();
         priceList.add(new DatePriceIdentity(priceAtFundCreation.getPriceIdentity().getPriceDate(), priceAtFundCreation.getAccumulatedPrice()));
         for (int i = 0; i < years; i++) {
-            LocalDate requestDate = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
-            Price requestPrice = priceRepo.find(id, requestDate);
-            priceList.add(new DatePriceIdentity(requestPrice.getPriceIdentity().getPriceDate(), requestPrice.getAccumulatedPrice()));
+            LocalDate date = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
+            Price price = priceRepo.findLatestPrice(id, date);
+            if (price.getAccumulatedPrice() != null) {
+                priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(), price.getAccumulatedPrice()));
+            }
         }
+        YearPrice yearPrice = new YearPrice(id, fund.getName(), priceList);
+        return yearPrice;
+    }
+
+    @Override
+    public MonthPrice findMonthPriceById(String id, int year) {
+        Price priceAtFundCreation = priceRepo.findPriceAtCreationById(id);
         Fund fund = fundService.findById(id);
-        PriceAtYearStart priceAtYearStart = new PriceAtYearStart(id, fund.getName(), priceList);
-        return priceAtYearStart;
+        if (priceAtFundCreation != null) {
+            LocalDate fundCreationDate = priceAtFundCreation.getPriceIdentity().getPriceDate();
+            LocalDate today = LocalDate.now();
+            if (fundCreationDate.getYear() <= year && today.getYear() >= year) {
+                List<DatePriceIdentity> priceList = new ArrayList<DatePriceIdentity>();
+                for (int i = 1; i <= 12; i++) {
+                    LocalDate currentDate = LocalDate.of(year, i, 1);
+                    LocalDate date = currentDate.withDayOfMonth(currentDate.getMonth().length(currentDate.isLeapYear()));
+                    Price price = priceRepo.findLatestPrice(id, date);
+                    if (price != null && price.getAccumulatedPrice() != null) {
+                        priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(), price.getAccumulatedPrice()));
+                    }
+                }
+                return new MonthPrice(id, fund.getName(), year, priceList);
+            }
+        }
+        return new MonthPrice(id, fund.getName(), year, new ArrayList<DatePriceIdentity>());
+    }
+
+    @Override
+    public Price findEarliestPrice(String id, LocalDate targetDate) {
+        return priceRepo.findEarliestPrice(id, targetDate);
     }
 
     @Override
@@ -129,8 +163,9 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Price findByFundIdDate(String id, LocalDate date) {
-        return priceRepo.find(id, date);
+    public Price findLatestPrice(String id, LocalDate date) {
+        return priceRepo.findLatestPrice(id, date);
     }
+
 
 }

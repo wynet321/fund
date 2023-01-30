@@ -4,12 +4,10 @@ import net.canglong.fund.entity.Fund;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
 
-@SuppressWarnings("UnusedReturnValue")
 public interface FundService {
     Page<Fund> get(Pageable pageable);
 
@@ -29,5 +27,9 @@ public interface FundService {
     List<Fund> findAll();
 
     Fund findByName(String name);
+
+    List<Fund> findAllByType(String type);
+
+    List<Fund> findAllExcludesType(String type);
 
 }
