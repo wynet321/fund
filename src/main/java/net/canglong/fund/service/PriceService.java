@@ -8,8 +8,10 @@ import net.canglong.fund.vo.YearPrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Transactional;
 
@@ -33,6 +35,10 @@ public interface PriceService {
     Price findStartDateById(String id);
 
     YearPrice findYearPriceById(String id);
+
+    Map<Integer, BigDecimal> findYearPriceMapById(String id);
+
+    Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year);
 
     MonthPrice findMonthPriceById(String id, int year);
 

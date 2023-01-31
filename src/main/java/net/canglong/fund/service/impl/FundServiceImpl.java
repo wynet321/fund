@@ -68,4 +68,9 @@ public class FundServiceImpl implements FundService {
         return fundRepo.findAllExcludesType(type);
     }
 
+    @Override
+    public List<String> findAllTypes() {
+        return fundRepo.findAllTypes();
+    }
+
 }

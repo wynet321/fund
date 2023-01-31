@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Status;
 import net.canglong.fund.service.JobService;
 import net.canglong.fund.service.RateService;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +23,13 @@ public class ScheduleTask {
     private boolean terminated = false;
 
     @Scheduled(fixedRate = 86400000)
+    @Async
     public void refresh() {
         jobService.startPriceRetrievalJob(10);
     }
 
     @Scheduled(fixedRate = 60000)
+    @Async
     public void reportImportStatus() {
         Status status = jobService.getPriceRetrievalJobStatus();
         if (!terminated) {
@@ -46,6 +49,7 @@ public class ScheduleTask {
     }
 
     @Scheduled(fixedRate = 108000000)
+    @Async
     public void generateStatisticData() {
         log.info("Start to generate statistic data...");
         long start = System.currentTimeMillis();

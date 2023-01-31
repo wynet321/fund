@@ -24,7 +24,9 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
@@ -123,6 +125,16 @@ public class PriceServiceImpl implements PriceService {
         YearPrice yearPrice = new YearPrice(id, fund.getName(), priceList);
         return yearPrice;
     }
+    @Override
+    public Map<Integer, BigDecimal> findYearPriceMapById(String id){
+        YearPrice yearPrice=findYearPriceById(id);
+        List<DatePriceIdentity> datePriceIdentities = yearPrice.getPriceList();
+        Map<Integer, BigDecimal> yearPrices = new HashMap<Integer, BigDecimal>();
+        for (DatePriceIdentity datePriceIdentity : datePriceIdentities) {
+            yearPrices.put(datePriceIdentity.getPriceDate().getYear(), datePriceIdentity.getAccumulatedPrice());
+        }
+        return yearPrices;
+    }
 
     @Override
     public MonthPrice findMonthPriceById(String id, int year) {
@@ -145,6 +157,17 @@ public class PriceServiceImpl implements PriceService {
             }
         }
         return new MonthPrice(id, fund.getName(), year, new ArrayList<DatePriceIdentity>());
+    }
+
+    @Override
+    public Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year){
+        MonthPrice monthPrice = findMonthPriceById(id, year);
+        List<DatePriceIdentity> datePriceIdentities = monthPrice.getPriceList();
+        Map<Integer, BigDecimal> monthPrices = new HashMap<Integer, BigDecimal>();
+        for (DatePriceIdentity datePriceIdentity : datePriceIdentities) {
+            monthPrices.put(datePriceIdentity.getPriceDate().getMonthValue(), datePriceIdentity.getAccumulatedPrice());
+        }
+        return monthPrices;
     }
 
     @Override
