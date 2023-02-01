@@ -22,13 +22,13 @@ public class ScheduleTask {
 
     private boolean terminated = false;
 
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedDelay = 86400000)
     @Async
     public void refresh() {
         jobService.startPriceRetrievalJob(10);
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedDelay = 60000)
     @Async
     public void reportImportStatus() {
         Status status = jobService.getPriceRetrievalJobStatus();
@@ -48,7 +48,7 @@ public class ScheduleTask {
         }
     }
 
-    @Scheduled(fixedRate = 108000000)
+    @Scheduled(fixedDelay = 108000000)
     @Async
     public void generateStatisticData() {
         log.info("Start to generate statistic data...");

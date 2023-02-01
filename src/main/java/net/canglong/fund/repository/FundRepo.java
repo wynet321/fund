@@ -23,6 +23,9 @@ public interface FundRepo extends JpaRepository<Fund, String> {
     @Query("select entity from Fund entity where type<>?1")
     List<Fund> findAllExcludesType(String type);
 
+    @Query("select entity from Fund entity where type in ?1")
+    List<Fund> findAllByTypes(List<String> types);
+
     @Query(nativeQuery = true,value = "select distinct type from fund")
     List<String> findAllTypes();
 }

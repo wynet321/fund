@@ -2,9 +2,11 @@ package net.canglong.fund.controller;
 
 import net.canglong.fund.service.RateService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/statistic", headers = "Accept=application/json")
@@ -27,28 +29,38 @@ public class StatisticController {
         return rateService.generate(fundId, fromCreationDate);
     }
 
-    @GetMapping(value = "/oneyearrate/{type}")
-    public Object getOneYearRateDesc(@PathVariable("type") String type, Pageable pageable) {
-        return rateService.getOneYearRateDesc(type, pageable);
+    @PostMapping(value = "/generate")
+    public Object generateRate() {
+        return rateService.generate(true);
     }
 
-    @GetMapping(value = "/threeyearrate/{type}")
-    public Object getThreeYearRateDesc(@PathVariable("type") String type, Pageable pageable) {
-        return rateService.getThreeYearRateDesc(type, pageable);
+    @PostMapping(value = "/generate/periodrate/{id}")
+    public Object generatePeriodRate(@PathVariable("id") String fundId) {
+        return rateService.generatePeriodRate(fundId);
     }
 
-    @GetMapping(value = "/fiveyearrate/{type}")
-    public Object getFiveYearRateDesc(@PathVariable("type") String type, Pageable pageable) {
-        return rateService.getFiveYearRateDesc(type, pageable);
+    @GetMapping(value = "/oneyearrate/{types}")
+    public Object getOneYearRateDesc(@PathVariable("types") List<String> types, Pageable pageable) {
+        return rateService.getOneYearRateDesc(types, pageable);
     }
 
-    @GetMapping(value = "/eightyearrate/{type}")
-    public Object getEightYearRateDesc(@PathVariable("type") String type, Pageable pageable) {
-        return rateService.getEightYearRateDesc(type, pageable);
+    @GetMapping(value = "/threeyearrate/{types}")
+    public Object getThreeYearRateDesc(@PathVariable("types") List<String> types, Pageable pageable) {
+        return rateService.getThreeYearRateDesc(types, pageable);
     }
 
-    @GetMapping(value = "/tenyearrate/{type}")
-    public Object getTenYearRateDesc(@PathVariable("type") String type, Pageable pageable) {
-        return rateService.getTenYearRateDesc(type, pageable);
+    @GetMapping(value = "/fiveyearrate/{types}")
+    public Object getFiveYearRateDesc(@PathVariable("types") List<String> types, Pageable pageable) {
+        return rateService.getFiveYearRateDesc(types, pageable);
+    }
+
+    @GetMapping(value = "/eightyearrate/{types}")
+    public Object getEightYearRateDesc(@PathVariable("types") List<String> types, Pageable pageable) {
+        return rateService.getEightYearRateDesc(types, pageable);
+    }
+
+    @GetMapping(value = "/tenyearrate/{types}")
+    public Object getTenYearRateDesc(@PathVariable("types") List<String> types, Pageable pageable) {
+        return rateService.getTenYearRateDesc(types, pageable);
     }
 }

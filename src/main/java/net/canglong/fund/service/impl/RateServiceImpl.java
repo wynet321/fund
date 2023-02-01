@@ -48,24 +48,16 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
-    public Boolean generate(String fundId, boolean refreshPreviousData) {
-        if (refreshPreviousData) {
-            generateYearPriceData(fundId, LocalDate.of(1970, 1, 1));
-            generateMonthPriceData(fundId, LocalDate.of(1970, 1, 1));
-            generatePeriodRate(fundId);
-        } else {
-            LocalDate statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
-            if (statisticDueDate == null) {
-                statisticDueDate = LocalDate.of(1970, 1, 1);
-            }
-            if (LocalDate.now().isAfter(statisticDueDate.plusMonths(1))) {
-                generateYearPriceData(fundId, statisticDueDate);
-                generateMonthPriceData(fundId, statisticDueDate);
-
-            }
-            if (LocalDate.now().getYear() != statisticDueDate.getYear()) {
-                generatePeriodRate(fundId);
-            }
+    public Boolean generate(String fundId, boolean refreshAllData) {
+        LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
+        if (!refreshAllData) {
+            statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
+            statisticDueDate = (statisticDueDate == null) ? LocalDate.of(1970, 1, 1) : statisticDueDate;
+        }
+        generateYearPriceData(fundId, statisticDueDate);
+        generatePeriodRate(fundId);
+        if (LocalDate.now().getYear() == statisticDueDate.getYear() && LocalDate.now().getMonthValue() > statisticDueDate.plusMonths(1).getMonthValue()) {
+            generateMonthPriceData(fundId, statisticDueDate);
         }
         Fund fund = fundService.findById(fundId);
         fund.setStatisticDueDate(LocalDate.now());
@@ -131,14 +123,14 @@ public class RateServiceImpl implements RateService {
         }
     }
 
-    private void generatePeriodRate(String fundId) {
+    public PeriodRate generatePeriodRate(String fundId) {
         Fund fund = fundService.findById(fundId);
         Company company = companyService.find(fund.getCompanyId());
         int currentYear = LocalDate.now().getYear() - 1;
         Map<Integer, BigDecimal> yearPrices = priceService.findYearPriceMapById(fundId);
         BigDecimal[] rates = new BigDecimal[10];
         for (int i = 0; i < 10; i++) {
-            if (yearPrices.get(currentYear) != null && yearPrices.get(currentYear - i - 1) != null && yearPrices.get(currentYear - i - 1).intValue() != 0) {
+            if (yearPrices.containsKey(currentYear) && yearPrices.containsKey(currentYear - i - 1) && yearPrices.get(currentYear - i - 1) != null && yearPrices.get(currentYear - i - 1).compareTo(BigDecimal.ZERO) != 0) {
                 BigDecimal rate = yearPrices.get(currentYear).subtract(yearPrices.get(currentYear - i - 1)).divide(yearPrices.get(currentYear - i - 1), 4, RoundingMode.HALF_UP);
                 rates[i] = rate;
             } else {
@@ -160,16 +152,16 @@ public class RateServiceImpl implements RateService {
         periodRate.setEightYearRate(rates[7]);
         periodRate.setNineYearRate(rates[8]);
         periodRate.setTenYearRate(rates[9]);
-        periodRateRepo.save(periodRate);
+        return periodRateRepo.saveAndFlush(periodRate);
     }
 
     @Override
-    public Boolean generate(boolean refreshPreviousData) {
-        List<Fund> allStockFunds = fundService.findAllExcludesType("货币型");
+    public Boolean generate(boolean refreshAllData) {
+        List<Fund> allStockFunds = fundService.findAllByTypes(List.of("混合型", "股票型"));
         int size = allStockFunds.size();
         int count = 0;
         for (Fund fund : allStockFunds) {
-            generate(fund.getId(), refreshPreviousData);
+            generate(fund.getId(), refreshAllData);
             if (++count % 100 == 0) {
                 log.info("Completed generating statistic data for " + count + " of " + size + " funds.");
             }
@@ -178,28 +170,28 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
-    public Page<PeriodRate> getOneYearRateDesc(String type, Pageable pageable) {
-        return periodRateRepo.getPeriodRateOrderByOneYearRateDesc(type, pageable);
+    public Page<PeriodRate> getOneYearRateDesc(List<String> types, Pageable pageable) {
+        return periodRateRepo.getPeriodRateOrderByOneYearRateDesc(types, pageable);
     }
 
     @Override
-    public Page<PeriodRate> getThreeYearRateDesc(String type, Pageable pageable) {
-        return periodRateRepo.getPeriodRateOrderByThreeYearRateDesc(type, pageable);
+    public Page<PeriodRate> getThreeYearRateDesc(List<String> types, Pageable pageable) {
+        return periodRateRepo.getPeriodRateOrderByThreeYearRateDesc(types, pageable);
     }
 
     @Override
-    public Page<PeriodRate> getFiveYearRateDesc(String type, Pageable pageable) {
-        return periodRateRepo.getPeriodRateOrderByFiveYearRateDesc(type, pageable);
+    public Page<PeriodRate> getFiveYearRateDesc(List<String> types, Pageable pageable) {
+        return periodRateRepo.getPeriodRateOrderByFiveYearRateDesc(types, pageable);
     }
 
     @Override
-    public Page<PeriodRate> getEightYearRateDesc(String type, Pageable pageable) {
-        return periodRateRepo.getPeriodRateOrderByEightYearRateDesc(type, pageable);
+    public Page<PeriodRate> getEightYearRateDesc(List<String> types, Pageable pageable) {
+        return periodRateRepo.getPeriodRateOrderByEightYearRateDesc(types, pageable);
     }
 
     @Override
-    public Page<PeriodRate> getTenYearRateDesc(String type, Pageable pageable) {
-        return periodRateRepo.getPeriodRateOrderByTenYearRateDesc(type, pageable);
+    public Page<PeriodRate> getTenYearRateDesc(List<String> types, Pageable pageable) {
+        return periodRateRepo.getPeriodRateOrderByTenYearRateDesc(types, pageable);
     }
 
     @Override

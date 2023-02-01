@@ -32,6 +32,8 @@ public interface FundService {
 
     List<Fund> findAllExcludesType(String type);
 
+    List<Fund> findAllByTypes(List<String> types);
+
     List<String> findAllTypes();
 
 }

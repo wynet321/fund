@@ -69,6 +69,11 @@ public class FundServiceImpl implements FundService {
     }
 
     @Override
+    public List<Fund> findAllByTypes(List<String> types) {
+        return fundRepo.findAllByTypes(types);
+    }
+
+    @Override
     public List<String> findAllTypes() {
         return fundRepo.findAllTypes();
     }

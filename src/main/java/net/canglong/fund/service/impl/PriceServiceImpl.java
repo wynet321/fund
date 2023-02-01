@@ -114,7 +114,9 @@ public class PriceServiceImpl implements PriceService {
         LocalDate today = LocalDate.now();
         int years = today.getYear() - fundCreationDate.getYear();
         List<DatePriceIdentity> priceList = new ArrayList<DatePriceIdentity>();
-        priceList.add(new DatePriceIdentity(priceAtFundCreation.getPriceIdentity().getPriceDate(), priceAtFundCreation.getAccumulatedPrice()));
+        if (!priceAtFundCreation.getPriceIdentity().getPriceDate().isEqual(LocalDate.of(priceAtFundCreation.getPriceIdentity().getPriceDate().getYear(), 12, 31))) {
+            priceList.add(new DatePriceIdentity(LocalDate.of(priceAtFundCreation.getPriceIdentity().getPriceDate().getYear() - 1, 12, 31), priceAtFundCreation.getAccumulatedPrice()));
+        }
         for (int i = 0; i < years; i++) {
             LocalDate date = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
             Price price = priceRepo.findLatestPrice(id, date);
@@ -125,9 +127,10 @@ public class PriceServiceImpl implements PriceService {
         YearPrice yearPrice = new YearPrice(id, fund.getName(), priceList);
         return yearPrice;
     }
+
     @Override
-    public Map<Integer, BigDecimal> findYearPriceMapById(String id){
-        YearPrice yearPrice=findYearPriceById(id);
+    public Map<Integer, BigDecimal> findYearPriceMapById(String id) {
+        YearPrice yearPrice = findYearPriceById(id);
         List<DatePriceIdentity> datePriceIdentities = yearPrice.getPriceList();
         Map<Integer, BigDecimal> yearPrices = new HashMap<Integer, BigDecimal>();
         for (DatePriceIdentity datePriceIdentity : datePriceIdentities) {
@@ -160,7 +163,7 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year){
+    public Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year) {
         MonthPrice monthPrice = findMonthPriceById(id, year);
         List<DatePriceIdentity> datePriceIdentities = monthPrice.getPriceList();
         Map<Integer, BigDecimal> monthPrices = new HashMap<Integer, BigDecimal>();
