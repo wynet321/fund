@@ -57,4 +57,5 @@ public class ScheduleTask {
         long duration = System.currentTimeMillis() - start;
         log.info("Completed generating statistic data. Total duration: " + (duration / 60000) + " minutes.");
     }
+
 }
