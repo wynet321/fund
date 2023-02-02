@@ -3,12 +3,14 @@ package net.canglong.fund.service.impl;
 import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
+import net.canglong.fund.entity.Price;
 import net.canglong.fund.entity.Status;
 import net.canglong.fund.service.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.List;
 
 @Log4j2
@@ -29,26 +31,32 @@ public class JobServiceImpl implements JobService {
     private final static int GET_FUND_PRICE = 1;
 
     @Override
-    public Status startPriceRetrievalJob(int threadCount) {
-        log.info("Website retrieval thread count is " + threadCount);
-        if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
-            executor = new ThreadPoolTaskExecutor();
-            executor.setCorePoolSize(threadCount);
-            executor.setThreadNamePrefix("Website retrieval thread pool");
-            executor.setWaitForTasksToCompleteOnShutdown(true);
-            executor.initialize();
-        }
-        if (executor.getThreadPoolExecutor().getQueue().isEmpty()) {
-            List<String> companyIds = websiteDataService.getCompanyIds();
-            log.info("Totally found " + companyIds.size() + " companies.");
-            startTime = System.currentTimeMillis();
-            for (String id : companyIds) {
-                if (!executor.getThreadPoolExecutor().isShutdown()) {
-                    executor.execute(new Task(GET_FUND_LIST, id));
+    public Boolean startPriceRetrievalJob(int threadCount) {
+        Price price = priceService.findLatestPrice("000001");
+        if (LocalDate.now().compareTo(price.getPriceIdentity().getPriceDate().plusMonths(1)) > 0) {
+            log.info("Start to retrieve fund information...");
+            log.info("Website retrieval thread count is " + threadCount);
+            if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
+                executor = new ThreadPoolTaskExecutor();
+                executor.setCorePoolSize(threadCount);
+                executor.setThreadNamePrefix("Website retrieval thread pool");
+                executor.setWaitForTasksToCompleteOnShutdown(true);
+                executor.initialize();
+            }
+            if (executor.getThreadPoolExecutor().getQueue().isEmpty()) {
+                List<String> companyIds = websiteDataService.getCompanyIds();
+                log.info("Totally found " + companyIds.size() + " companies.");
+                startTime = System.currentTimeMillis();
+                for (String id : companyIds) {
+                    if (!executor.getThreadPoolExecutor().isShutdown()) {
+                        executor.execute(new Task(GET_FUND_LIST, id));
+                    }
                 }
             }
+            getPriceRetrievalJobStatus();
+            return false;
         }
-        return getPriceRetrievalJobStatus();
+        return true;
     }
 
     @Override
@@ -70,7 +78,7 @@ public class JobServiceImpl implements JobService {
             executor.getThreadPoolExecutor().getQueue().clear();
             executor.shutdown();
             log.info("executor is terminating...");
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
         return true;

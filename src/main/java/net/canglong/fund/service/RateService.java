@@ -12,7 +12,7 @@ public interface RateService {
     List<MonthRate> getMonthRateById(String fundId);
     List<YearRate> getYearRateById(String fundId);
     Boolean generate(String fundId, boolean refreshAllData);
-    Boolean generate(boolean refreshAllData);
+    Boolean generate(List<String> types, boolean refreshAllData);
     Page<PeriodRate> getOneYearRateDesc(List<String> types,Pageable pageable);
     Page<PeriodRate> getThreeYearRateDesc(List<String> types,Pageable pageable);
     Page<PeriodRate> getFiveYearRateDesc(List<String> types,Pageable pageable);

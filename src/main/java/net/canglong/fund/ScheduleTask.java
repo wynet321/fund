@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Component
 @Log4j2
@@ -25,7 +26,10 @@ public class ScheduleTask {
     @Scheduled(fixedDelay = 86400000)
     @Async
     public void refresh() {
-        jobService.startPriceRetrievalJob(10);
+        terminated = jobService.startPriceRetrievalJob(10);
+        if (terminated) {
+            log.info("Bypass fund retrieval and import job since less than 1 month's data need to be retrieved.");
+        }
     }
 
     @Scheduled(fixedDelay = 60000)
@@ -51,11 +55,7 @@ public class ScheduleTask {
     @Scheduled(fixedDelay = 108000000)
     @Async
     public void generateStatisticData() {
-        log.info("Start to generate statistic data...");
-        long start = System.currentTimeMillis();
-        rateService.generate(false);
-        long duration = System.currentTimeMillis() - start;
-        log.info("Completed generating statistic data. Total duration: " + (duration / 60000) + " minutes.");
+        rateService.generate(List.of("混合型", "股票型"),false);
     }
 
 }

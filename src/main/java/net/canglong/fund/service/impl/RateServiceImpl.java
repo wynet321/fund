@@ -48,6 +48,29 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
+    public Boolean generate(List<String> types, boolean refreshAllData) {
+        Price price = priceService.findLatestPrice("000001");
+        if (refreshAllData || LocalDate.now().compareTo(price.getPriceIdentity().getPriceDate().plusMonths(1)) > 0) {
+            log.info("Start to generate statistic data...");
+            long start = System.currentTimeMillis();
+            List<Fund> allStockFunds = fundService.findAllByTypes(types);
+            int size = allStockFunds.size();
+            int count = 0;
+            for (Fund stockFund : allStockFunds) {
+                generate(stockFund.getId(), refreshAllData);
+                if (++count % 100 == 0) {
+                    log.info("Completed generating statistic data for " + count + " of " + size + " funds.");
+                }
+            }
+            long duration = System.currentTimeMillis() - start;
+            log.info("Completed generating statistic data. Total duration: " + (duration / 60000) + " minutes.");
+            return true;
+        }
+        log.info("Bypass fund statistic generation since less than 1 month's data need to be delt with.");
+        return false;
+    }
+
+    @Override
     public Boolean generate(String fundId, boolean refreshAllData) {
         LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
         if (!refreshAllData) {
@@ -60,7 +83,8 @@ public class RateServiceImpl implements RateService {
             generateMonthPriceData(fundId, statisticDueDate);
         }
         Fund fund = fundService.findById(fundId);
-        fund.setStatisticDueDate(LocalDate.now());
+        Price price=priceService.findLatestPrice(fundId);
+        fund.setStatisticDueDate(price.getPriceIdentity().getPriceDate());
         fundService.update(fund);
         return true;
     }
@@ -103,10 +127,10 @@ public class RateServiceImpl implements RateService {
                 } else {
                     Price price = null;
                     if (key == 1) {
-                        price = priceService.findLatestPrice(fundId, LocalDate.of(year - 1, 12, 31));
+                        price = priceService.findLatestPriceAfterDate(fundId, LocalDate.of(year - 1, 12, 31));
                     }
                     if (price == null) {
-                        price = priceService.findEarliestPrice(fundId, LocalDate.of(year, key, 1));
+                        price = priceService.findEarliestPriceBeforeDate(fundId, LocalDate.of(year, key, 1));
                     }
                     if (price == null) {
                         monthRate.setRate(BigDecimal.valueOf(0L));
@@ -153,20 +177,6 @@ public class RateServiceImpl implements RateService {
         periodRate.setNineYearRate(rates[8]);
         periodRate.setTenYearRate(rates[9]);
         return periodRateRepo.saveAndFlush(periodRate);
-    }
-
-    @Override
-    public Boolean generate(boolean refreshAllData) {
-        List<Fund> allStockFunds = fundService.findAllByTypes(List.of("混合型", "股票型"));
-        int size = allStockFunds.size();
-        int count = 0;
-        for (Fund fund : allStockFunds) {
-            generate(fund.getId(), refreshAllData);
-            if (++count % 100 == 0) {
-                log.info("Completed generating statistic data for " + count + " of " + size + " funds.");
-            }
-        }
-        return true;
     }
 
     @Override

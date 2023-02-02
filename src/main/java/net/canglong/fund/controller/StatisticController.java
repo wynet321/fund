@@ -2,7 +2,6 @@ package net.canglong.fund.controller;
 
 import net.canglong.fund.service.RateService;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -29,9 +28,9 @@ public class StatisticController {
         return rateService.generate(fundId, fromCreationDate);
     }
 
-    @PostMapping(value = "/generate")
-    public Object generateRate() {
-        return rateService.generate(true);
+    @PostMapping(value = "/generate/{types}")
+    public Object generateRate(@PathVariable("types") List<String> types) {
+        return rateService.generate(types, true);
     }
 
     @PostMapping(value = "/generate/periodrate/{id}")

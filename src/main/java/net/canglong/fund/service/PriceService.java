@@ -21,7 +21,7 @@ public interface PriceService {
 
     Page<Price> findByFundId(String id, Pageable pageable);
 
-    Price findLatestPrice(String id, LocalDate date);
+    Price findLatestPriceAfterDate(String id, LocalDate date);
 
     Page<Price> find(String id, LocalDate startDate, Pageable pageable);
 
@@ -42,5 +42,7 @@ public interface PriceService {
 
     MonthPrice findMonthPriceById(String id, int year);
 
-    Price findEarliestPrice(String id, LocalDate targetDate);
+    Price findEarliestPriceBeforeDate(String id, LocalDate targetDate);
+
+    Price findLatestPrice(String id);
 }
