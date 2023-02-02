@@ -50,7 +50,7 @@ public class RateServiceImpl implements RateService {
     @Override
     public Boolean generate(List<String> types, boolean refreshAllData) {
         Price price = priceService.findLatestPrice("000001");
-        if (refreshAllData || LocalDate.now().compareTo(price.getPriceIdentity().getPriceDate().plusMonths(1)) > 0) {
+        if (refreshAllData || LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(1))) {
             log.info("Start to generate statistic data...");
             long start = System.currentTimeMillis();
             List<Fund> allStockFunds = fundService.findAllByTypes(types);
@@ -72,6 +72,10 @@ public class RateServiceImpl implements RateService {
 
     @Override
     public Boolean generate(String fundId, boolean refreshAllData) {
+        Price price = priceService.findLatestPrice(fundId);
+        if (price == null) {
+            return true;
+        }
         LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
         if (!refreshAllData) {
             statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
@@ -83,20 +87,19 @@ public class RateServiceImpl implements RateService {
             generateMonthPriceData(fundId, statisticDueDate);
         }
         Fund fund = fundService.findById(fundId);
-        Price price=priceService.findLatestPrice(fundId);
         fund.setStatisticDueDate(price.getPriceIdentity().getPriceDate());
         fundService.update(fund);
         return true;
     }
 
-    private List<YearRate> generateYearPriceData(String fundId, LocalDate statisticDueDate) {
+    private void generateYearPriceData(String fundId, LocalDate statisticDueDate) {
         Map<Integer, BigDecimal> yearPrices = priceService.findYearPriceMapById(fundId);
-        List<YearRate> yearRates = new ArrayList<YearRate>();
+        List<YearRate> yearRates = new ArrayList<>();
         for (Integer key : yearPrices.keySet()) {
             if (key > statisticDueDate.getYear()) {
                 YearRate yearRate = new YearRate();
                 yearRate.setYearRateIdentity(new YearRateIdentity(fundId, key));
-                if (yearPrices.keySet().contains(key - 1) && yearPrices.get(key - 1) != null) {
+                if (yearPrices.containsKey(key - 1) && yearPrices.get(key - 1) != null) {
                     if (yearPrices.get(key - 1).intValue() == 0) {
                         yearRate.setRate(BigDecimal.valueOf(0));
                     } else {
@@ -108,17 +111,16 @@ public class RateServiceImpl implements RateService {
                 yearRates.add(yearRate);
             }
         }
-        return yearRateRepo.saveAllAndFlush(yearRates);
+        yearRateRepo.saveAllAndFlush(yearRates);
     }
 
     private void generateMonthPriceData(String fundId, LocalDate statisticDueDate) {
-        Price priceAtCreation = priceService.findStartDateById(fundId);
         for (int year = statisticDueDate.getYear(); year <= LocalDate.now().getYear(); year++) {
             Map<Integer, BigDecimal> monthPrices = priceService.findMonthPriceMapById(fundId, year);
             for (Integer key : monthPrices.keySet()) {
                 MonthRate monthRate = new MonthRate();
                 monthRate.setMonthRateIdentity(new MonthRateIdentity(fundId, year, key));
-                if (monthPrices.keySet().contains(key - 1) && monthPrices.get(key - 1) != null) {
+                if (monthPrices.containsKey(key - 1) && monthPrices.get(key - 1) != null) {
                     if (monthPrices.get(key - 1).intValue() == 0) {
                         monthRate.setRate(BigDecimal.valueOf(0));
                     } else {
@@ -127,10 +129,10 @@ public class RateServiceImpl implements RateService {
                 } else {
                     Price price = null;
                     if (key == 1) {
-                        price = priceService.findLatestPriceAfterDate(fundId, LocalDate.of(year - 1, 12, 31));
+                        price = priceService.findLatestPriceBeforeDate(fundId, LocalDate.of(year - 1, 12, 31));
                     }
                     if (price == null) {
-                        price = priceService.findEarliestPriceBeforeDate(fundId, LocalDate.of(year, key, 1));
+                        price = priceService.findEarliestPriceAfterDate(fundId, LocalDate.of(year, key, 1));
                     }
                     if (price == null) {
                         monthRate.setRate(BigDecimal.valueOf(0L));

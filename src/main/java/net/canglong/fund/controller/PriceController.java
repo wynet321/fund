@@ -33,7 +33,7 @@ public class PriceController {
 
     @GetMapping(value = "/{id}/{date}")
     public Object getByFundIdAndDate(@PathVariable("id") String id, @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return priceService.findLatestPriceAfterDate(id, date);
+        return priceService.findLatestPriceBeforeDate(id, date);
     }
 
     @GetMapping(value = "/{id}/start/{date}")

@@ -24,17 +24,17 @@ public class StatisticController {
     }
 
     @PostMapping(value = "/year/{id}")
-    public Object createYearRateById(@PathVariable("id") String fundId, @RequestParam("fromCreationDate") boolean fromCreationDate) {
+    public Object createYearRateById(@PathVariable("id") String fundId, @RequestParam("fromCreationDate") boolean fromCreationDate) throws Exception{
         return rateService.generate(fundId, fromCreationDate);
     }
 
     @PostMapping(value = "/generate/{types}")
-    public Object generateRate(@PathVariable("types") List<String> types) {
+    public Object generateRate(@PathVariable("types") List<String> types) throws Exception{
         return rateService.generate(types, true);
     }
 
     @PostMapping(value = "/generate/periodrate/{id}")
-    public Object generatePeriodRate(@PathVariable("id") String fundId) {
+    public Object generatePeriodRate(@PathVariable("id") String fundId) throws Exception {
         return rateService.generatePeriodRate(fundId);
     }
 

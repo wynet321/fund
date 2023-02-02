@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Aspect
 @Component
-public class Response {
+public class ResponseHandler {
 
     @Pointcut("within(net.canglong.fund.controller.*)")
     public void httpResponse() {}

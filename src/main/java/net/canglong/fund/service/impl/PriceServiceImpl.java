@@ -54,7 +54,7 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public Page<Price> findByFundId(String id, Pageable pageable) {
-        return priceRepo.findLatestPriceAfterDate(id, pageable);
+        return priceRepo.findLatestPriceBeforeDate(id, pageable);
     }
 
     @Override
@@ -88,8 +88,8 @@ public class PriceServiceImpl implements PriceService {
 
     @Override
     public FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) throws Exception {
-        Price priceAtStartDate = priceRepo.findLatestPriceAfterDate(id, startDate);
-        Price priceAtEndDate = priceRepo.findLatestPriceAfterDate(id, endDate);
+        Price priceAtStartDate = priceRepo.findLatestPriceBeforeDate(id, startDate);
+        Price priceAtEndDate = priceRepo.findLatestPriceBeforeDate(id, endDate);
         BigDecimal ratio = priceAtEndDate.getAccumulatedPrice().subtract(priceAtStartDate.getAccumulatedPrice()).divide(priceAtStartDate.getAccumulatedPrice(), 2, RoundingMode.HALF_UP);
         DecimalFormat df = new DecimalFormat("0.00%");
         String percentage = df.format(ratio);
@@ -119,7 +119,7 @@ public class PriceServiceImpl implements PriceService {
         }
         for (int i = 0; i < years; i++) {
             LocalDate date = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
-            Price price = priceRepo.findLatestPriceAfterDate(id, date);
+            Price price = priceRepo.findLatestPriceBeforeDate(id, date);
             if (price.getAccumulatedPrice() != null) {
                 priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(), price.getAccumulatedPrice()));
             }
@@ -151,7 +151,7 @@ public class PriceServiceImpl implements PriceService {
                 for (int i = 1; i <= 12; i++) {
                     LocalDate currentDate = LocalDate.of(year, i, 1);
                     LocalDate date = currentDate.withDayOfMonth(currentDate.getMonth().length(currentDate.isLeapYear()));
-                    Price price = priceRepo.findLatestPriceAfterDate(id, date);
+                    Price price = priceRepo.findLatestPriceBeforeDate(id, date);
                     if (price != null && price.getAccumulatedPrice() != null) {
                         priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(), price.getAccumulatedPrice()));
                     }
@@ -174,8 +174,8 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Price findEarliestPriceBeforeDate(String id, LocalDate targetDate) {
-        return priceRepo.findEarliestPriceBeforeDate(id, targetDate);
+    public Price findEarliestPriceAfterDate(String id, LocalDate targetDate) {
+        return priceRepo.findEarliestPriceAfterDate(id, targetDate);
     }
 
     @Override
@@ -194,8 +194,8 @@ public class PriceServiceImpl implements PriceService {
     }
 
     @Override
-    public Price findLatestPriceAfterDate(String id, LocalDate date) {
-        return priceRepo.findLatestPriceAfterDate(id, date);
+    public Price findLatestPriceBeforeDate(String id, LocalDate date) {
+        return priceRepo.findLatestPriceBeforeDate(id, date);
     }
 
 

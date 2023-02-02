@@ -54,8 +54,8 @@ public class ScheduleTask {
 
     @Scheduled(fixedDelay = 108000000)
     @Async
-    public void generateStatisticData() {
-        rateService.generate(List.of("混合型", "股票型"),false);
+    public void generateStatisticData() throws Exception {
+        rateService.generate(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);
     }
 
 }
