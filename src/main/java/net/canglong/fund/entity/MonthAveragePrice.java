@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 
 public interface MonthAveragePrice {
 
-    String getId();
+  String getId();
 
-    BigDecimal getAveragePrice();
+  BigDecimal getAveragePrice();
 
-    int getMonth();
+  int getMonth();
 
 }

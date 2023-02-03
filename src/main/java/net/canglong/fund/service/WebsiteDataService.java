@@ -1,21 +1,21 @@
 package net.canglong.fund.service;
 
+import java.util.List;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
 import net.canglong.fund.entity.Price;
 
-import java.util.List;
-
 public interface WebsiteDataService {
-    List<String> getCompanyIds();
 
-    List<Fund> getFunds(String companyId, String companyAbbr);
+  List<String> getCompanyIds();
 
-    Company getCompany(String companyId) throws Exception;
+  List<Fund> getFunds(String companyId, String companyAbbr);
 
-    String getPriceWebPage(Fund fund, int page) throws Exception;
+  Company getCompany(String companyId) throws Exception;
 
-    boolean containsPrice(String html);
+  String getPriceWebPage(Fund fund, int page) throws Exception;
 
-    List<Price> getPrices(String html, Fund fund, int page);
+  boolean containsPrice(String html);
+
+  List<Price> getPrices(String html, Fund fund, int page);
 }

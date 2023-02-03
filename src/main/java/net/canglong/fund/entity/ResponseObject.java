@@ -1,14 +1,12 @@
 package net.canglong.fund.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class ResponseObject {
 
-    private boolean success;
-    private String message;
-    private Object data;
+  private boolean success;
+  private String message;
+  private Object data;
 
 }
