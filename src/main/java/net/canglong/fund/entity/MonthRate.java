@@ -1,20 +1,20 @@
 package net.canglong.fund.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.math.BigDecimal;
-
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "fund_return_rate_by_month")
 public class MonthRate {
-    @EmbeddedId
-    private MonthRateIdentity monthRateIdentity;
-    private BigDecimal rate;
+
+  @EmbeddedId
+  private MonthRateIdentity monthRateIdentity;
+  private String name;
+  private String companyName;
+  private String type;
+  private BigDecimal rate;
 }
