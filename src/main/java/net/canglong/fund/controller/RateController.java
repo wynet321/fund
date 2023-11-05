@@ -19,7 +19,8 @@ public class RateController {
   private RateService rateService;
 
   @GetMapping(value = "/month/{id}/{year}")
-  public Object getMonthRateById(@PathVariable("id") String fundId, @PathVariable("year") int year) {
+  public Object getMonthRateById(@PathVariable("id") String fundId,
+      @PathVariable("year") int year) {
     return rateService.getMonthRateById(fundId, year);
   }
 

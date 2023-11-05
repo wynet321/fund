@@ -31,22 +31,22 @@ public class MonthRateIdentity implements Serializable {
 
   @Override
   public boolean equals(Object obj) {
-      if (this == obj) {
-          return true;
-      }
-      if (obj == null) {
-          return false;
-      }
-      if (getClass() != obj.getClass()) {
-          return false;
-      }
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     MonthRateIdentity other = (MonthRateIdentity) obj;
     if (fundId == null) {
-        if (other.fundId != null) {
-            return false;
-        }
-    } else if (!fundId.equals(other.fundId)) {
+      if (other.fundId != null) {
         return false;
+      }
+    } else if (!fundId.equals(other.fundId)) {
+      return false;
     }
     return month == other.month;
   }

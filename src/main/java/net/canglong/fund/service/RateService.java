@@ -32,5 +32,6 @@ public interface RateService {
 
   Page<YearRate> getYearRateByTypesAndYear(List<String> types, int year, Pageable pageable);
 
-  List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period, Pageable pageable);
+  List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period,
+      Pageable pageable);
 }

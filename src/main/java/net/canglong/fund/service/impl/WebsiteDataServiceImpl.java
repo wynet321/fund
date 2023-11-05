@@ -69,8 +69,9 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     targetCompany.setAbbr(
         companyDetail.getObject().getJSONObject("fundCompany").get("shortName").toString());
     targetCompany.setCreatedOn((new SimpleDateFormat("yyyy-MM-dd")).parse(
-        companyDetail.getObject().getJSONObject("fundCompany").get("foundDate")
-            .toString()));
+        companyDetail.getObject().getJSONObject("fundCompany").get("foundDate").toString().isEmpty()
+            ? "1980-01-01"
+            : companyDetail.getObject().getJSONObject("fundCompany").get("foundDate").toString()));
     targetCompany.setAddress(
         companyDetail.getObject().getJSONObject("fundCompany").get("officeArea").toString());
     log.debug("Completed getting company detail for " + targetCompany.getName());

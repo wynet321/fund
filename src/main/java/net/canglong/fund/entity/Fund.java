@@ -21,12 +21,6 @@ public class Fund {
   private String type;
   @Column(name = "current_page")
   private int currentPage = 0;
-  @Column(name = "average_rate_by_month")
-  private BigDecimal averageRateByMonth;
-  @Column(name = "average_rate_by_year")
-  private BigDecimal averageRateByYear;
-  @Column(name = "total_rate")
-  private BigDecimal totalRate;
   @Column(name = "statistic_due_date")
   private LocalDate statisticDueDate;
 

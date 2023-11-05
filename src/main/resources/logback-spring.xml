@@ -1,56 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <configuration>
-	<appender name="STDOUT"
-		class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
-				[%-40logger{36}] - %msg%n</pattern>
-		</encoder>
-		<target>System.out</target>
-	</appender>
-	<appender name="STDERR"
-		class="ch.qos.logback.core.ConsoleAppender">
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>WARN</level>
-		</filter>
-		<encoder>
-			<pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
-				[%-40logger{36}] - %msg%n</pattern>
-		</encoder>
-		<target>System.err</target>
-	</appender>
+  <appender class="ch.qos.logback.core.ConsoleAppender"
+    name="STDOUT">
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
+        [%-40logger{36}] - %msg%n
+      </pattern>
+    </encoder>
+    <target>System.out</target>
+  </appender>
+  <appender class="ch.qos.logback.core.ConsoleAppender"
+    name="STDERR">
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
+        [%-40logger{36}] - %msg%n
+      </pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <target>System.err</target>
+  </appender>
 
-	<appender name="FILE"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>logs/service.log</file>
-		<rollingPolicy
-			class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			rollover daily
-			<fileNamePattern>logs/service.%d{yyyy-MM-dd}.%i.log.gz
-			</fileNamePattern>
-			<maxFileSize>100MB</maxFileSize>
-			<maxHistory>10</maxHistory>
-			<totalSizeCap>1GB</totalSizeCap>
-		</rollingPolicy>
-		<encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
-                [%-40logger{36}] - %msg%n</pattern>
-        </encoder>
-	</appender>
+  <appender class="ch.qos.logback.core.rolling.RollingFileAppender"
+    name="FILE">
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%-24thread]
+        [%-40logger{36}] - %msg%n
+      </pattern>
+    </encoder>
+    <file>logs/service.log</file>
+    <rollingPolicy
+      class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      rollover daily
+      <fileNamePattern>logs/service.%d{yyyy-MM-dd}.%i.log.gz
+      </fileNamePattern>
+      <maxFileSize>100MB</maxFileSize>
+      <maxHistory>10</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+  </appender>
 
-	<logger name="net.canglong" level="info" additivity="false">
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="STDERR" />
-		<appender-ref ref="FILE" />
-	</logger>
+  <logger additivity="false" level="info" name="net.canglong">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="STDERR"/>
+    <appender-ref ref="FILE"/>
+  </logger>
 
-	<root level="info">
-		<appender-ref ref="STDOUT" />
-	</root>
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+  </root>
 
-<!--	<root>-->
-<!--		<appender-ref ref="STDOUT" />-->
-<!--		<appender-ref ref="STDERR" />-->
-<!--	</root>-->
+  <!--	<root>-->
+  <!--		<appender-ref ref="STDOUT" />-->
+  <!--		<appender-ref ref="STDERR" />-->
+  <!--	</root>-->
 </configuration>

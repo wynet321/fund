@@ -248,11 +248,15 @@ public class RateServiceImpl implements RateService {
   @Override
   public List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period,
       Pageable pageable) {
-    List<YearAverageRate> yearAverageRates=new ArrayList<>();
-    Page<Object[]> yearAverageRatesResult=yearRateRepo.findAverageRankByTypesAndYear(types, LocalDate.now().getYear() - period - 1,
+    List<YearAverageRate> yearAverageRates = new ArrayList<>();
+    Page<Object[]> yearAverageRatesResult = yearRateRepo.findAverageRankByTypesAndYear(types,
+        LocalDate.now().getYear() - period - 1,
         pageable);
-    yearAverageRatesResult.forEach(item->{
-      yearAverageRates.add(new YearAverageRate(item[0].toString(),item[1].toString(),item[2].toString(),item[3].toString(),BigDecimal.valueOf((double)item[4]), BigDecimal.valueOf((double)item[5])));
+    yearAverageRatesResult.forEach(item -> {
+      yearAverageRates.add(
+          new YearAverageRate(item[0].toString(), item[1].toString(), item[2].toString(),
+              item[3].toString(), BigDecimal.valueOf((double) item[4]),
+              BigDecimal.valueOf((double) item[5])));
     });
     return yearAverageRates;
   }
