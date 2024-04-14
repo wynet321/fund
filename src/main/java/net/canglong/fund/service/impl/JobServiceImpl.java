@@ -24,6 +24,7 @@ public class JobServiceImpl implements JobService {
   private final static int GET_FUND_PRICE = 1;
   private ThreadPoolTaskExecutor executor;
   private long startTime;
+  private int fundCount;
   @Resource
   private WebsiteDataService websiteDataService;
   @Resource
@@ -36,7 +37,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public Boolean startPriceRetrievalJob(int threadCount) {
     Price price = priceService.findLatestPrice("000001");
-    if (LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(1))) {
+    if (LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(0))) {
       log.info("Start to retrieve fund information...");
       log.info("Website retrieval thread count is " + threadCount);
       if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
@@ -55,8 +56,10 @@ public class JobServiceImpl implements JobService {
             executor.execute(new Task(GET_FUND_LIST, id));
           }
         }
+        fundCount = executor.getThreadPoolExecutor().getQueue().size();
+        log.info("Totally found " + fundCount + " funds.");
+        executor.shutdown();
       }
-      getPriceRetrievalJobStatus();
       return false;
     }
     return true;
@@ -66,7 +69,8 @@ public class JobServiceImpl implements JobService {
   public Status getPriceRetrievalJobStatus() {
     Status status = new Status();
     if (executor != null) {
-      status.setLeftCount(executor.getThreadPoolExecutor().getQueue().size());
+      status.setTotalFundCount(fundCount);
+      status.setLeftFundCount(executor.getThreadPoolExecutor().getQueue().size());
       status.setAliveThreadCount(executor.getActiveCount());
       status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
       status.setTerminated(executor.getThreadPoolExecutor().isTerminated());
@@ -102,7 +106,7 @@ public class JobServiceImpl implements JobService {
       try {
         if (jobType == GET_FUND_PRICE) {
           priceService.create(id);
-          Thread.sleep(10000);
+//          Thread.sleep(10000);
         } else if (jobType == GET_FUND_LIST) {
           Company savedCompany = companyService.create(websiteDataService.getCompany(id));
           List<Fund> fundList = fundService.create(

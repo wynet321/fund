@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Status;
 import net.canglong.fund.service.JobService;
 import net.canglong.fund.service.RateService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,10 +23,13 @@ public class ScheduleTask {
 
   private boolean terminated = false;
 
+  @Value("${spring.threadCount}")
+  private int threadCount;
+
   @Scheduled(fixedDelay = 86400000)
   @Async
   public void refresh() {
-    terminated = jobService.startPriceRetrievalJob(10);
+    terminated = jobService.startPriceRetrievalJob(threadCount);
     if (terminated) {
       log.info(
           "Bypass fund retrieval and import job since less than 1 month's data need to be retrieved.");
@@ -43,7 +47,8 @@ public class ScheduleTask {
         log.info("*******************");
       } else if (status.getTaskCount() > 0) {
         log.info("*******************");
-        log.info(String.format("Left companies: %s", status.getLeftCount()));
+        log.info(String.format("Total fund count: %s", status.getTotalFundCount()));
+        log.info(String.format("Left fund count: %s", status.getLeftFundCount()));
         log.info(String.format("Elapse Time: %s", status.getElapseTime()));
         log.info(String.format("Active Threads: %s", status.getAliveThreadCount()));
         log.info("*******************");

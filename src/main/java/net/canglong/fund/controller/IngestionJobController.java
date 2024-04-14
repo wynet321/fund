@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/api/import", headers = "Accept=application/json")
-public class ImportJobController {
+@RequestMapping(value = "/api/ingest", headers = "Accept=application/json")
+public class IngestionJobController {
 
   @Resource
   private JobService jobService;

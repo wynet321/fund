@@ -24,6 +24,7 @@ spring:
     locations: classpath:db/migration
     baselineOnMigrate: true
     enabled: true
+  threadCount: 20
 server:
   address: localhost
   servlet:

@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class Status {
 
-  private int leftCount;
+  private int totalFundCount;
+  private int leftFundCount;
   private long elapseTime;
   private boolean terminated;
   private int aliveThreadCount;
