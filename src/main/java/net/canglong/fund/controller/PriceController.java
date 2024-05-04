@@ -67,7 +67,7 @@ public class PriceController {
     return priceService.findYearPriceById(id);
   }
 
-  @PostMapping(value = {"/ingestion/{threadCount}"})
+  @PostMapping(value = {"/ingestion/{threadCount}",""})
   public Object startIngestionJob(
       @PathVariable(name = "threadCount", required = false) Integer threadCount) {
     if (threadCount == null) {
