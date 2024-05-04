@@ -290,12 +290,14 @@ public class RateServiceImpl implements RateService {
   public void reportStatusOfGenerateStatisticForAll() {
     Status status = getStatisticJobStatus();
     if (!generateStatisticForAllTerminated) {
-      log.info("\n*******************\nStatistic job was terminated.\n*******************");
-    } else {
-      log.info(
-          "\n*******************\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
-          status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
+      if (status.isTerminated()) {
+        log.info("\n*******************\nStatistic job was terminated.\n*******************");
+      } else if (status.getAliveThreadCount() > 0) {
+        log.info(
+            "\n*******************\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
+            status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
+      }
+      generateStatisticForAllTerminated = status.isTerminated();
     }
-    generateStatisticForAllTerminated = status.isTerminated();
   }
 }
