@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.transaction.Transactional;
 import net.canglong.fund.entity.MonthAveragePrice;
 import net.canglong.fund.entity.Price;
+import net.canglong.fund.entity.Status;
 import net.canglong.fund.vo.FundPercentage;
 import net.canglong.fund.vo.MonthPrice;
 import net.canglong.fund.vo.YearPrice;
@@ -44,4 +45,14 @@ public interface PriceService {
   Price findEarliestPriceAfterDate(String id, LocalDate targetDate);
 
   Price findLatestPrice(String id);
+
+  Boolean startPriceRetrievalJob(int threadCount);
+
+  Status getPriceRetrievalJobStatus();
+
+  boolean stopPriceRetrievalJob();
+
+  void retrievePriceForAll();
+
+  void reportStatusOfRetrievePriceForAll();
 }

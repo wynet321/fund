@@ -49,7 +49,7 @@ public class RateController {
 
   @PostMapping(value = "/generate/{types}")
   public Object generateRate(@PathVariable("types") List<String> types) throws Exception {
-    return rateService.generate(types, true);
+    return rateService.generateStatisticData();
   }
 
   @PostMapping(value = "/generate/periodrate/{id}")

@@ -14,6 +14,7 @@ import net.canglong.fund.entity.MonthRate;
 import net.canglong.fund.entity.MonthRateIdentity;
 import net.canglong.fund.entity.PeriodRate;
 import net.canglong.fund.entity.Price;
+import net.canglong.fund.entity.Status;
 import net.canglong.fund.entity.YearRate;
 import net.canglong.fund.entity.YearRateIdentity;
 import net.canglong.fund.repository.MonthRateRepo;
@@ -26,6 +27,9 @@ import net.canglong.fund.service.RateService;
 import net.canglong.fund.vo.YearAverageRate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 
@@ -44,6 +48,9 @@ public class RateServiceImpl implements RateService {
   private PriceService priceService;
   @Resource
   private CompanyService companyService;
+  private ThreadPoolTaskExecutor executor;
+  private long startTime;
+  private boolean generateStatisticForAllTerminated = false;
 
   public RateServiceImpl(PeriodRateRepo periodRateRepo) {
     this.periodRateRepo = periodRateRepo;
@@ -60,24 +67,35 @@ public class RateServiceImpl implements RateService {
     if (refreshAllData
         || LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(1))) {
       log.info("Start to generate statistic data...");
-      long start = System.currentTimeMillis();
+      startTime = System.currentTimeMillis();
+      executor = new ThreadPoolTaskExecutor();
+      executor.setCorePoolSize(5);
+      executor.setThreadNamePrefix("Statistic job thread pool");
+      executor.setWaitForTasksToCompleteOnShutdown(true);
+      executor.initialize();
       List<Fund> allStockFunds = fundService.findAllByTypes(types);
-      int size = allStockFunds.size();
-      int count = 0;
       for (Fund stockFund : allStockFunds) {
-        generate(stockFund.getId(), refreshAllData);
-        if (++count % 100 == 0) {
-          log.info("Completed generating statistic data for " + count + " of " + size + " funds.");
-        }
+        executor.submit(() -> generate(stockFund.getId(), refreshAllData));
       }
-      long duration = System.currentTimeMillis() - start;
-      log.info("Completed generating statistic data. Total duration: " + (duration / 60000)
-          + " minutes.");
+      executor.shutdown();
       return true;
     }
     log.info(
         "Bypass fund statistic generation since less than 1 month's data need to be delt with.");
     return false;
+  }
+
+  @Override
+  public Status getStatisticJobStatus() {
+    Status status = new Status();
+    if (executor != null) {
+      status.setLeftFundCount(executor.getThreadPoolExecutor().getQueue().size());
+      status.setAliveThreadCount(executor.getActiveCount());
+      status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
+      status.setTerminated(executor.getThreadPoolExecutor().isTerminated());
+      status.setTaskCount(executor.getThreadPoolExecutor().getTaskCount());
+    }
+    return status;
   }
 
   @Override
@@ -252,13 +270,32 @@ public class RateServiceImpl implements RateService {
     Page<Object[]> yearAverageRatesResult = yearRateRepo.findAverageRankByTypesAndYear(types,
         LocalDate.now().getYear() - period - 1,
         pageable);
-    yearAverageRatesResult.forEach(item -> {
-      yearAverageRates.add(
-          new YearAverageRate(item[0].toString(), item[1].toString(), item[2].toString(),
-              item[3].toString(), BigDecimal.valueOf((double) item[4]),
-              BigDecimal.valueOf((double) item[5])));
-    });
+    yearAverageRatesResult.forEach(item -> yearAverageRates.add(
+        new YearAverageRate(item[0].toString(), item[1].toString(), item[2].toString(),
+            item[3].toString(), BigDecimal.valueOf((double) item[4]),
+            BigDecimal.valueOf((double) item[5]))));
     return yearAverageRates;
   }
 
+  @Override
+  @Scheduled(fixedDelay = 108000000)
+  @Async
+  public Boolean generateStatisticData() {
+    return generate(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);
+  }
+
+  @Override
+  @Async
+  @Scheduled(fixedDelay = 60000)
+  public void reportStatusOfGenerateStatisticForAll() {
+    Status status = getStatisticJobStatus();
+    if (!generateStatisticForAllTerminated) {
+      log.info("\n*******************\nStatistic job was terminated.\n*******************");
+    } else {
+      log.info(
+          "\n*******************\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
+          status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
+    }
+    generateStatisticForAllTerminated = status.isTerminated();
+  }
 }

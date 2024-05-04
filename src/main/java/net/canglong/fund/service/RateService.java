@@ -3,6 +3,7 @@ package net.canglong.fund.service;
 import java.util.List;
 import net.canglong.fund.entity.MonthRate;
 import net.canglong.fund.entity.PeriodRate;
+import net.canglong.fund.entity.Status;
 import net.canglong.fund.entity.YearRate;
 import net.canglong.fund.vo.YearAverageRate;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,8 @@ public interface RateService {
   List<MonthRate> getMonthRateById(String fundId, int year);
 
   Boolean generate(List<String> types, boolean refreshAllData) throws Exception;
+
+  Status getStatisticJobStatus();
 
   Page<PeriodRate> getOneYearRateDesc(List<String> types, Pageable pageable);
 
@@ -34,4 +37,8 @@ public interface RateService {
 
   List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period,
       Pageable pageable);
+
+  Boolean generateStatisticData() throws Exception;
+
+  void reportStatusOfGenerateStatisticForAll();
 }

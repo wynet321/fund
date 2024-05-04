@@ -60,7 +60,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("type", "4040-1010");
     parameters.put("code", targetCompany.getId());
-    log.debug("Start to get company detail for " + targetCompany.getName());
+    log.debug("Start to get company detail for {}", targetCompany.getName());
     JsonNode companyDetail = Unirest.get("/fund/disclose/fund_compay_detail.do")
         .queryString(parameters).asJson()
         .getBody();
@@ -74,7 +74,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
             : companyDetail.getObject().getJSONObject("fundCompany").get("foundDate").toString()));
     targetCompany.setAddress(
         companyDetail.getObject().getJSONObject("fundCompany").get("officeArea").toString());
-    log.debug("Completed getting company detail for " + targetCompany.getName());
+    log.debug("Completed getting company detail for {}", targetCompany.getName());
     return targetCompany;
   }
 
@@ -83,7 +83,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
     int index = 0;
     int totalCount = 1;
     List<Fund> funds = new LinkedList<>();
-    log.debug("Start to get fund list for " + companyAbbr);
+    log.debug("Start to get fund list for {}", companyAbbr);
     while (index < totalCount) {
       JsonNode node = Unirest.get(
               "/fund/disclose/advanced_search_fund.do?aoData=%5B%7B%22name%22%3A%22sEcho%22%2C%22value%22%3A1%7D%2C%7B%22name%22%3A%22iColumns%22%2C%22value%22%3A4%7D"
@@ -109,7 +109,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
       totalCount = node.getObject().getInt("iTotalRecords");
       index += 20;
     }
-    log.debug("Completed getting " + totalCount + " funds for Company " + companyAbbr);
+    log.debug("Completed getting {} funds for Company {}", totalCount, companyAbbr);
     return funds;
   }
 
@@ -174,7 +174,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
         prices.add(getNonCurrencyFundPrice(rowElements, nonCurrencyFundFieldIndex, page));
       }
     }
-    log.debug("Retrieved page " + page + " price for fund " + fund.getName());
+    log.debug("Retrieved page {} price for fund {}", page, fund.getName());
     return prices;
   }
 
@@ -252,7 +252,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
   private void addParentFund(Elements elementTds) {
     Fund parentFund = fundService.findById(elementTds.get(0).text());
     if (parentFund == null) {
-      log.error("Parent Fund " + elementTds.get(0).text() + " can't be found.");
+      log.error("Parent Fund {} can't be found.", elementTds.get(0).text());
     } else {
       Fund originalFund = fundService.findById(elementTds.get(1).text());
       if (originalFund == null) {

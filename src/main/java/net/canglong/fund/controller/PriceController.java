@@ -5,6 +5,7 @@ import javax.annotation.Resource;
 import net.canglong.fund.service.PriceService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,5 +65,24 @@ public class PriceController {
   @GetMapping(value = "/{id}/priceAtYearStart")
   public Object findYearPriceById(@PathVariable("id") String id) {
     return priceService.findYearPriceById(id);
+  }
+
+  @PostMapping(value = {"/ingestion/{threadCount}"})
+  public Object startIngestionJob(
+      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
+    if (threadCount == null) {
+      return priceService.startPriceRetrievalJob(10);
+    }
+    return priceService.startPriceRetrievalJob(threadCount);
+  }
+
+  @GetMapping(value = {"/ingestion"})
+  public Object getIngestionJobStatus() {
+    return priceService.getPriceRetrievalJobStatus();
+  }
+
+  @DeleteMapping(value = {"/ingestion"})
+  public Object stopIngestionJob() {
+    return priceService.stopPriceRetrievalJob();
   }
 }
