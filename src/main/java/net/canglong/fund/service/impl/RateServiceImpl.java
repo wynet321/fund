@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -63,9 +64,9 @@ public class RateServiceImpl implements RateService {
 
   @Override
   public Boolean generate(List<String> types, boolean refreshAllData) {
-    Price price = priceService.findLatestPrice("000001");
+    Date latestPriceDate = priceService.findLatestPriceDate();
     if (refreshAllData
-        || LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(1))) {
+        || LocalDate.now().isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
       log.info("Start to generate statistic data...");
       startTime = System.currentTimeMillis();
       executor = new ThreadPoolTaskExecutor();
@@ -100,10 +101,8 @@ public class RateServiceImpl implements RateService {
 
   @Override
   public Boolean generate(String fundId, boolean refreshAllData) {
-    Price price = priceService.findLatestPrice(fundId);
-    if (price == null) {
-      return true;
-    }
+    Date latestPriceDate = priceService.findLatestPriceDate();
+
     LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
     if (!refreshAllData) {
       statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
@@ -117,7 +116,7 @@ public class RateServiceImpl implements RateService {
       generateMonthPriceData(fundId, statisticDueDate);
     }
     Fund fund = fundService.findById(fundId);
-    fund.setStatisticDueDate(price.getPriceIdentity().getPriceDate());
+    fund.setStatisticDueDate(LocalDate.parse(latestPriceDate.toString()));
     fundService.update(fund);
     return true;
   }

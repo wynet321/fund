@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/api/price")
+@RequestMapping(value = "/api/price", headers = "Accept=application/json")
 public class PriceController {
 
   @Resource
@@ -24,32 +24,32 @@ public class PriceController {
     return priceService.findByFundId(id, pageable);
   }
 
-  @GetMapping(value = "/month_avg/{id}/start/{date}")
+  @GetMapping(value = "/fund/month_avg/{id}/start/{date}")
   public Object getMonthAveragePrice(@PathVariable("id") String id,
       @PathVariable("date") @DateTimeFormat(
           iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
     return priceService.findAllMonthAveragePriceByFundId(id, startDate);
   }
 
-  @PostMapping(value = "/{id}")
+  @PostMapping(value = "/fund/{id}")
   public Object create(@PathVariable("id") String id) throws Exception {
     return priceService.create(id);
   }
 
-  @GetMapping(value = "/{id}/{date}")
+  @GetMapping(value = "/fund/{id}/{date}")
   public Object getByFundIdAndDate(@PathVariable("id") String id,
       @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
     return priceService.findLatestPriceBeforeDate(id, date);
   }
 
-  @GetMapping(value = "/{id}/start/{date}")
+  @GetMapping(value = "/fund/{id}/start/{date}")
   public Object getPriceFromDate(@PathVariable("id") String id,
       @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       Pageable pageable) {
     return priceService.find(id, startDate, pageable);
   }
 
-  @GetMapping(value = "/{id}/start/{startDate}/end/{endDate}")
+  @GetMapping(value = "/fund/{id}/start/{startDate}/end/{endDate}")
   public Object find(@PathVariable("id") String id,
       @PathVariable("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @PathVariable("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
@@ -57,32 +57,32 @@ public class PriceController {
     return priceService.findPercentageByDate(id, startDate, endDate);
   }
 
-  @GetMapping(value = "/{id}/startDate")
+  @GetMapping(value = "/fund/{id}/startDate")
   public Object findStartDate(@PathVariable("id") String id) {
     return priceService.findStartDateById(id);
   }
 
-  @GetMapping(value = "/{id}/priceAtYearStart")
+  @GetMapping(value = "/fund/{id}/priceAtYearStart")
   public Object findYearPriceById(@PathVariable("id") String id) {
     return priceService.findYearPriceById(id);
   }
 
-  @PostMapping(value = {"/ingestion/{threadCount}",""})
-  public Object startIngestionJob(
-      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
-    if (threadCount == null) {
-      return priceService.startPriceRetrievalJob(10);
-    }
-    return priceService.startPriceRetrievalJob(threadCount);
-  }
-
-  @GetMapping(value = {"/ingestion"})
-  public Object getIngestionJobStatus() {
-    return priceService.getPriceRetrievalJobStatus();
-  }
-
-  @DeleteMapping(value = {"/ingestion"})
-  public Object stopIngestionJob() {
-    return priceService.stopPriceRetrievalJob();
-  }
+//  @PostMapping(value = "/ingestion/{threadCount}")
+//  public Object startIngestionJob(
+//      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
+//    if (threadCount == null) {
+//      return priceService.startPriceRetrievalJob(10);
+//    }
+//    return priceService.startPriceRetrievalJob(threadCount);
+//  }
+//
+//  @GetMapping(value = "/ingestion")
+//  public Object getIngestionJobStatus() {
+//    return priceService.getPriceRetrievalJobStatus();
+//  }
+//
+//  @DeleteMapping(value = "/ingestion")
+//  public Object stopIngestionJob() {
+//    return priceService.stopPriceRetrievalJob();
+//  }
 }

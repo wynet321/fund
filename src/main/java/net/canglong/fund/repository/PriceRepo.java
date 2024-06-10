@@ -1,6 +1,7 @@
 package net.canglong.fund.repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import net.canglong.fund.entity.MonthAveragePrice;
 import net.canglong.fund.entity.Price;
@@ -33,8 +34,8 @@ public interface PriceRepo extends JpaRepository<Price, PriceIdentity> {
   Price findLatestPriceBeforeDate(@Param("fundId") String fundId,
       @Param("targetDate") LocalDate targetDate);
 
-  @Query(nativeQuery = true, value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date=(select max(price_date) from fund_price where fund_id=:fundId)")
-  Price findLatestPrice(@Param("fundId") String fundId);
+  @Query(nativeQuery = true, value = "select price_date from fund_price where fund_id=:fundId order by price_date desc")
+  Date findLatestPriceDateById(@Param("fundId") String fundId);
 
   @Query(nativeQuery = true, value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date=(select min(price_date) from fund_price where fund_id=:fundId and price_date>=:targetDate)")
   Price findEarliestPriceAfterDate(@Param("fundId") String fundId,
@@ -43,4 +44,6 @@ public interface PriceRepo extends JpaRepository<Price, PriceIdentity> {
   @Query(nativeQuery = true, value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date=(select min(price_date) from fund_price where fund_id=:fundId)")
   Price findPriceAtCreationById(@Param("fundId") String fundId);
 
+  @Query(nativeQuery = true, value = "select price_date from fund_price where price is not null order by price_date desc limit 1")
+  Date findLatestPriceDate();
 }

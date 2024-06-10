@@ -2,6 +2,7 @@ package net.canglong.fund.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.transaction.Transactional;
@@ -44,7 +45,9 @@ public interface PriceService {
 
   Price findEarliestPriceAfterDate(String id, LocalDate targetDate);
 
-  Price findLatestPrice(String id);
+  Date findLatestPriceDate();
+
+  Date findLatestPriceDateById(String id);
 
   Boolean startPriceRetrievalJob(int threadCount);
 

@@ -7,6 +7,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,8 +205,13 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  public Price findLatestPrice(String id) {
-    return priceRepo.findLatestPrice(id);
+  public Date findLatestPriceDate() {
+    return priceRepo.findLatestPriceDate();
+  }
+
+  @Override
+  public Date findLatestPriceDateById(String id) {
+    return priceRepo.findLatestPriceDateById(id);
   }
 
   @Override
@@ -255,8 +261,8 @@ public class PriceServiceImpl implements PriceService {
 
   @Override
   public Boolean startPriceRetrievalJob(int threadCount) {
-    Price price = findLatestPrice("000001");
-    if (LocalDate.now().isAfter(price.getPriceIdentity().getPriceDate().plusMonths(0))) {
+    Date latestPriceDate = findLatestPriceDate();
+    if (LocalDate.now().isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
       log.info("Start to retrieve fund information...");
       log.info("Website retrieval thread count is {}", threadCount);
       if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
