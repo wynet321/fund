@@ -41,20 +41,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class PriceServiceImpl implements PriceService {
 
-  private final static int GET_FUND_LIST = 0;
-  private final static int GET_FUND_PRICE = 1;
   @Resource
   private PriceRepo priceRepo;
   @Resource
   private WebsiteDataService websiteDataService;
   @Resource
   private FundService fundService;
-  private ThreadPoolTaskExecutor executor;
+  private ThreadPoolTaskExecutor priceExecutor;
+  private ThreadPoolTaskExecutor fundExecutor;
   private long startTime;
-  private int fundCount;
+  private int fundCount = 0;
   @Resource
   private CompanyService companyService;
-  private boolean retrievePriceForAllTerminated = false;
   @Value("${spring.threadCount}")
   private int threadCount;
 
@@ -80,23 +78,32 @@ public class PriceServiceImpl implements PriceService {
     int count = 0;
     Fund fund = fundService.findById(fundId);
     if (fund != null) {
-      page = fund.getCurrentPage();
-      log.debug("Start to collect fund {}", fund.getName());
-      List<Price> prices;
-      String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
-      do {
-        prices = websiteDataService.getPrices(priceWebPage, fund, page - 1);
-        prices = priceRepo.saveAll(prices);
-        count += prices.size();
-        if (count % 1000 == 0) {
-          log.debug("{} completed {} records.", fund.getName(), count);
-        }
-        priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
-      } while (websiteDataService.containsPrice(priceWebPage));
-      log.debug("{} total {} records.", fund.getName(), count);
-      log.info("{} page {} done.", fund.getName(), page - 1);
-      fund.setCurrentPage(page - 1);
-      fundService.create(fund);
+      Date latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
+      if (latestPriceDate == null || LocalDate.now()
+          .isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
+        page = fund.getCurrentPage();
+        log.debug("Start to collect fund {}", fund.getName());
+        List<Price> prices;
+        String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
+        do {
+          prices = websiteDataService.getPrices(priceWebPage, fund, page - 1);
+          prices = priceRepo.saveAll(prices);
+          count += prices.size();
+          if (count % 1000 == 0) {
+            log.debug("{} completed {} records.", fund.getName(), count);
+          }
+          priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
+        } while (websiteDataService.containsPrice(priceWebPage));
+        log.debug("{} total {} records.", fund.getName(), count);
+        log.info("{} page {} done.", fund.getName(), page - 1);
+        fund.setCurrentPage(page - 1);
+        fundService.create(fund);
+        Date fundLatestDate = priceRepo.findLatestPriceDateById(fund.getId());
+        log.info("Fund {} latest price date is {}", fund.getId(),
+            fundLatestDate != null ? fundLatestDate.toString() : "Empty");
+      } else {
+        log.info("Bypass fund {} latest price date is {}", fund.getId(), latestPriceDate);
+      }
     } else {
       throw new Exception("can't find the fund in DB.");
     }
@@ -231,75 +238,65 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  @Scheduled(fixedDelay = 86400000)
-  @Async
-  public void retrievePriceForAll() {
-    retrievePriceForAllTerminated = startPriceRetrievalJob(threadCount);
-    if (retrievePriceForAllTerminated) {
-      log.info(
-          "Bypass fund retrieval and import job since less than 1 month's data need to be retrieved.");
-    }
-  }
-
-  @Override
   @Scheduled(fixedDelay = 60000)
   @Async
   public void reportStatusOfRetrievePriceForAll() {
     Status status = getPriceRetrievalJobStatus();
-    if (!retrievePriceForAllTerminated) {
-      if (status.isTerminated()) {
-        log.info("\n*******************\nRetrieval job was terminated.\n*******************");
-      } else if (status.getTaskCount() > 0) {
-        log.info(
-            "\n*******************\nTotal fund count: {}\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
-            status.getTotalFundCount(), status.getLeftFundCount(), status.getElapseTime(),
-            status.getAliveThreadCount());
-      }
-      retrievePriceForAllTerminated = status.isTerminated();
+    if (status.isTerminated() && priceExecutor != null) {
+      log.info("\n*******************\nRetrieval job was completed.\n*******************");
+      fundExecutor = null;
+      priceExecutor = null;
+    } else if (status.getTaskCount() > 0) {
+      log.info(
+          "\n*******************\nPrice Retrieval\nTotal fund count: {}\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
+          status.getTotalFundCount(), status.getLeftFundCount(), status.getElapseTime(),
+          status.getAliveThreadCount());
     }
   }
 
   @Override
-  public Boolean startPriceRetrievalJob(int threadCount) {
-    Date latestPriceDate = findLatestPriceDate();
-    if (LocalDate.now().isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
-      log.info("Start to retrieve fund information...");
-      log.info("Website retrieval thread count is {}", threadCount);
-      if (executor == null || executor.getThreadPoolExecutor().isShutdown()) {
-        executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(threadCount);
-        executor.setThreadNamePrefix("Website retrieval thread pool");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.initialize();
-      }
-      if (executor.getThreadPoolExecutor().getQueue().isEmpty()) {
-        List<String> companyIds = websiteDataService.getCompanyIds();
-        log.info("Totally found {} companies.", companyIds.size());
-        startTime = System.currentTimeMillis();
-        for (String id : companyIds) {
-          if (!executor.getThreadPoolExecutor().isShutdown()) {
-            executor.execute(new Task(GET_FUND_LIST, id));
-          }
-        }
-        fundCount = executor.getThreadPoolExecutor().getQueue().size();
-        log.info("Totally found {} funds.", fundCount);
-        executor.shutdown();
-      }
-      return false;
+  @Scheduled(fixedDelay = 86400000)
+  @Async
+  public Boolean startPriceRetrievalJob() {
+    log.info("Start to retrieve fund information...");
+    log.info("Website retrieval thread count is {}", threadCount);
+    if (priceExecutor == null || priceExecutor.getThreadPoolExecutor().isShutdown()) {
+      priceExecutor = new ThreadPoolTaskExecutor();
+      priceExecutor.setCorePoolSize(threadCount);
+      priceExecutor.setThreadNamePrefix("Price retrieval thread pool");
+      priceExecutor.setWaitForTasksToCompleteOnShutdown(true);
+      priceExecutor.initialize();
+      fundExecutor = new ThreadPoolTaskExecutor();
+      fundExecutor.setCorePoolSize(threadCount);
+      fundExecutor.setThreadNamePrefix("Fund retrieval thread pool");
+      fundExecutor.setWaitForTasksToCompleteOnShutdown(true);
+      fundExecutor.initialize();
     }
-    return true;
+    if (priceExecutor.getThreadPoolExecutor().getQueue().isEmpty()) {
+      List<String> companyIds = websiteDataService.getCompanyIds();
+      log.info("Totally found {} companies.", companyIds.size());
+      startTime = System.currentTimeMillis();
+      for (String companyId : companyIds) {
+        fundExecutor.execute(new FundTask(companyId));
+      }
+      fundExecutor.shutdown();
+    }
+    return false;
   }
 
   @Override
   public Status getPriceRetrievalJobStatus() {
     Status status = new Status();
-    if (executor != null) {
+    if (fundExecutor != null && fundExecutor.getThreadPoolExecutor().isTerminated()) {
       status.setTotalFundCount(fundCount);
-      status.setLeftFundCount(executor.getThreadPoolExecutor().getQueue().size());
-      status.setAliveThreadCount(executor.getActiveCount());
+      priceExecutor.getThreadPoolExecutor().shutdown();
+    }
+    if (priceExecutor != null) {
+      status.setLeftFundCount(priceExecutor.getThreadPoolExecutor().getQueue().size());
+      status.setAliveThreadCount(priceExecutor.getActiveCount());
       status.setElapseTime((System.currentTimeMillis() - startTime) / 1000);
-      status.setTerminated(executor.getThreadPoolExecutor().isTerminated());
-      status.setTaskCount(executor.getThreadPoolExecutor().getTaskCount());
+      status.setTerminated(priceExecutor.getThreadPoolExecutor().isTerminated());
+      status.setTaskCount(priceExecutor.getThreadPoolExecutor().getTaskCount());
     }
     return status;
   }
@@ -307,8 +304,8 @@ public class PriceServiceImpl implements PriceService {
   @Override
   public boolean stopPriceRetrievalJob() {
     try {
-      executor.getThreadPoolExecutor().getQueue().clear();
-      executor.shutdown();
+      priceExecutor.getThreadPoolExecutor().getQueue().clear();
+      priceExecutor.shutdown();
       log.info("executor is terminating...");
     } catch (Exception e) {
       return false;
@@ -316,32 +313,43 @@ public class PriceServiceImpl implements PriceService {
     return true;
   }
 
-  class Task implements Runnable {
+  class PriceTask implements Runnable {
 
-    private final String id;
-    private final int jobType;
+    private final String fundId;
 
-    public Task(int jobType, String id) {
-      this.jobType = jobType;
-      this.id = id;
+    public PriceTask(String fundId) {
+      this.fundId = fundId;
     }
 
     @Override
     public void run() {
       try {
-        if (jobType == GET_FUND_PRICE) {
-          create(id);
-        } else if (jobType == GET_FUND_LIST) {
-          Company savedCompany = companyService.create(websiteDataService.getCompany(id));
-          List<Fund> fundList = fundService.create(
-              websiteDataService.getFunds(id, savedCompany.getAbbr()));
-          log.info("Imported fund list for {}. Total funds: {}", savedCompany.getName(),
-              fundList.size());
-          for (Fund fund : fundList) {
-            if (!executor.getThreadPoolExecutor().isShutdown()) {
-              executor.execute(new Task(GET_FUND_PRICE, fund.getId()));
-            }
-          }
+        create(fundId);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+      }
+    }
+  }
+
+  class FundTask implements Runnable {
+
+    private final String companyId;
+
+    public FundTask(String companyId) {
+      this.companyId = companyId;
+    }
+
+    @Override
+    public void run() {
+      try {
+        Company savedCompany = companyService.create(websiteDataService.getCompany(companyId));
+        List<Fund> fundList = fundService.create(
+            websiteDataService.getFunds(companyId, savedCompany.getAbbr()));
+        log.info("Total {} funds found for {}", fundList.size(),
+            savedCompany.getName());
+        fundCount += fundList.size();
+        for (Fund fund : fundList) {
+          priceExecutor.execute(new PriceTask(fund.getId()));
         }
       } catch (Exception e) {
         log.error(e.getMessage(), e);

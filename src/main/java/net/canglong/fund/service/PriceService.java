@@ -49,13 +49,11 @@ public interface PriceService {
 
   Date findLatestPriceDateById(String id);
 
-  Boolean startPriceRetrievalJob(int threadCount);
+  Boolean startPriceRetrievalJob();
 
   Status getPriceRetrievalJobStatus();
 
   boolean stopPriceRetrievalJob();
-
-  void retrievePriceForAll();
 
   void reportStatusOfRetrievePriceForAll();
 }

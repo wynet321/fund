@@ -51,7 +51,6 @@ public class RateServiceImpl implements RateService {
   private CompanyService companyService;
   private ThreadPoolTaskExecutor executor;
   private long startTime;
-  private boolean generateStatisticForAllTerminated = false;
 
   public RateServiceImpl(PeriodRateRepo periodRateRepo) {
     this.periodRateRepo = periodRateRepo;
@@ -70,7 +69,7 @@ public class RateServiceImpl implements RateService {
       log.info("Start to generate statistic data...");
       startTime = System.currentTimeMillis();
       executor = new ThreadPoolTaskExecutor();
-      executor.setCorePoolSize(5);
+      executor.setCorePoolSize(20);
       executor.setThreadNamePrefix("Statistic job thread pool");
       executor.setWaitForTasksToCompleteOnShutdown(true);
       executor.initialize();
@@ -102,7 +101,6 @@ public class RateServiceImpl implements RateService {
   @Override
   public Boolean generate(String fundId, boolean refreshAllData) {
     Date latestPriceDate = priceService.findLatestPriceDate();
-
     LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
     if (!refreshAllData) {
       statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
@@ -288,15 +286,13 @@ public class RateServiceImpl implements RateService {
   @Scheduled(fixedDelay = 60000)
   public void reportStatusOfGenerateStatisticForAll() {
     Status status = getStatisticJobStatus();
-    if (!generateStatisticForAllTerminated) {
-      if (status.isTerminated()) {
-        log.info("\n*******************\nStatistic job was terminated.\n*******************");
-      } else if (status.getAliveThreadCount() > 0) {
-        log.info(
-            "\n*******************\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
-            status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
-      }
-      generateStatisticForAllTerminated = status.isTerminated();
+    if (status.isTerminated() && executor != null) {
+      log.info("\n*******************\nStatistic job was completed.\n*******************");
+      executor = null;
+    } else if (status.getAliveThreadCount() > 0) {
+      log.info(
+          "\n*******************\nStatistic generation\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
+          status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
     }
   }
 }

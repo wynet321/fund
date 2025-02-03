@@ -109,7 +109,7 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
       totalCount = node.getObject().getInt("iTotalRecords");
       index += 20;
     }
-    log.debug("Completed getting {} funds for Company {}", totalCount, companyAbbr);
+    log.info("Completed getting {} funds for Company {}", totalCount, companyAbbr);
     return funds;
   }
 
@@ -142,13 +142,15 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
   public List<Price> getPrices(String html, Fund fund, int page) {
     boolean isCurrencyFund = fund.getType().equals("货币型");
     Document doc = Jsoup.parse(html);
-    List<Price> prices = new LinkedList<>();
+    LinkedList<Price> prices = new LinkedList<>();
     Elements header = doc.getElementsByAttributeValueMatching("class", "cc");
     if (header.isEmpty()) {
+      log.info("No price on {} by empty header", fund.getId());
       return prices;
     }
     Elements bodyElements = doc.getElementsByAttributeValueMatching("class", "dd|aa");
     if (bodyElements.isEmpty()) {
+      log.info("No price on {} by empty body", fund.getId());
       return prices;
     }
 
