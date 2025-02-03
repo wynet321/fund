@@ -282,6 +282,11 @@ public class RateServiceImpl implements RateService {
   }
 
   @Override
+  public Boolean generateStatisticData(List<String> types, boolean refreshAllData) {
+    return generate(types, refreshAllData);
+  }
+
+  @Override
   @Async
   @Scheduled(fixedDelay = 60000)
   public void reportStatusOfGenerateStatisticForAll() {
