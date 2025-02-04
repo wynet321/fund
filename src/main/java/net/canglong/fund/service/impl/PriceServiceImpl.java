@@ -7,7 +7,6 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +77,7 @@ public class PriceServiceImpl implements PriceService {
     int count = 0;
     Fund fund = fundService.findById(fundId);
     if (fund != null) {
-      Date latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
+      LocalDate latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
       if (latestPriceDate == null || LocalDate.now()
           .isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
         page = fund.getCurrentPage();
@@ -98,7 +97,7 @@ public class PriceServiceImpl implements PriceService {
         log.info("{} page {} done.", fund.getName(), page - 1);
         fund.setCurrentPage(page - 1);
         fundService.create(fund);
-        Date fundLatestDate = priceRepo.findLatestPriceDateById(fund.getId());
+        LocalDate fundLatestDate = priceRepo.findLatestPriceDateById(fund.getId());
         log.info("Fund {} latest price date is {}", fund.getId(),
             fundLatestDate != null ? fundLatestDate.toString() : "Empty");
       } else {
@@ -125,7 +124,7 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  public Price findStartDateById(String id) {
+  public Price findPriceAtCreationById(String id) {
     return priceRepo.findPriceAtCreationById(id);
   }
 
@@ -212,13 +211,13 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  public Date findLatestPriceDate() {
-    return priceRepo.findLatestPriceDate();
+  public LocalDate findLatestPriceDateById(String id) {
+    return priceRepo.findLatestPriceDateById(id);
   }
 
   @Override
-  public Date findLatestPriceDateById(String id) {
-    return priceRepo.findLatestPriceDateById(id);
+  public LocalDate findEarliestPriceDateById(String id) {
+    return priceRepo.findEarliestPriceDateById(id);
   }
 
   @Override
@@ -237,9 +236,8 @@ public class PriceServiceImpl implements PriceService {
     return priceRepo.findLatestPriceBeforeDate(id, date);
   }
 
-  @Override
-  @Scheduled(fixedDelay = 60000)
   @Async
+  @Scheduled(fixedDelay = 60000)
   public void reportStatusOfRetrievePriceForAll() {
     Status status = getPriceRetrievalJobStatus();
     if (status.isTerminated() && priceExecutor != null) {
@@ -255,8 +253,8 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  @Scheduled(fixedDelay = 86400000)
   @Async
+  @Scheduled(fixedDelay = 86400000)
   public Boolean startPriceRetrievalJob() {
     log.info("Start to retrieve fund information...");
     log.info("Website retrieval thread count is {}", threadCount);

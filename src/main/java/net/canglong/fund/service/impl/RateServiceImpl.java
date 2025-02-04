@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -63,26 +62,19 @@ public class RateServiceImpl implements RateService {
 
   @Override
   public Boolean generate(List<String> types, boolean refreshAllData) {
-    Date latestPriceDate = priceService.findLatestPriceDate();
-    if (refreshAllData
-        || LocalDate.now().isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
-      log.info("Start to generate statistic data...");
-      startTime = System.currentTimeMillis();
-      executor = new ThreadPoolTaskExecutor();
-      executor.setCorePoolSize(20);
-      executor.setThreadNamePrefix("Statistic job thread pool");
-      executor.setWaitForTasksToCompleteOnShutdown(true);
-      executor.initialize();
-      List<Fund> allStockFunds = fundService.findAllByTypes(types);
-      for (Fund stockFund : allStockFunds) {
-        executor.submit(() -> generate(stockFund.getId(), refreshAllData));
-      }
-      executor.shutdown();
-      return true;
+    log.info("Start to generate statistic data...");
+    startTime = System.currentTimeMillis();
+    executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(20);
+    executor.setThreadNamePrefix("Statistic job thread pool");
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.initialize();
+    List<Fund> funds = fundService.findAllByTypes(types);
+    for (Fund fund : funds) {
+      executor.submit(() -> generate(fund.getId(), refreshAllData));
     }
-    log.info(
-        "Bypass fund statistic generation since less than 1 month's data need to be delt with.");
-    return false;
+    executor.shutdown();
+    return true;
   }
 
   @Override
@@ -100,21 +92,27 @@ public class RateServiceImpl implements RateService {
 
   @Override
   public Boolean generate(String fundId, boolean refreshAllData) {
-    Date latestPriceDate = priceService.findLatestPriceDate();
     LocalDate statisticDueDate = LocalDate.of(1970, 1, 1);
     if (!refreshAllData) {
       statisticDueDate = fundService.findById(fundId).getStatisticDueDate();
       statisticDueDate = (statisticDueDate == null) ? LocalDate.of(1970, 1, 1) : statisticDueDate;
     }
-    generateYearRates(fundId, statisticDueDate);
-    generatePeriodRate(fundId);
-    if ((LocalDate.now().getYear() == statisticDueDate.getYear()
-        && LocalDate.now().getMonthValue() > statisticDueDate.plusMonths(1).getMonthValue())
-        || refreshAllData) {
-      generateMonthPriceData(fundId, statisticDueDate);
+    if (LocalDate.now().isAfter(statisticDueDate.plusMonths(1L))) {
+      generateYearRates(fundId, statisticDueDate);
+      generatePeriodRate(fundId);
+      if ((LocalDate.now().getYear() == statisticDueDate.getYear()
+          && LocalDate.now().getMonthValue() > statisticDueDate.plusMonths(1).getMonthValue())
+          || refreshAllData) {
+        generateMonthPriceData(fundId, statisticDueDate);
+      }
+    } else {
+      log.info(
+          "Bypass fund statistic generation since less than 1 month's data need to be delt with.");
     }
     Fund fund = fundService.findById(fundId);
-    fund.setStatisticDueDate(LocalDate.parse(latestPriceDate.toString()));
+    fund.setStatisticDueDate(priceService.findLatestPriceDateById(fund.getId()));
+    fund.setStartDate(priceService.findEarliestPriceDateById(fund.getId()));
+    fund.setEndDate(priceService.findLatestPriceDateById(fund.getId()));
     fundService.update(fund);
     return true;
   }
@@ -274,7 +272,6 @@ public class RateServiceImpl implements RateService {
     return yearAverageRates;
   }
 
-  @Override
   @Scheduled(fixedDelay = 108000000)
   @Async
   public Boolean generateStatisticData() {
@@ -286,7 +283,6 @@ public class RateServiceImpl implements RateService {
     return generate(types, refreshAllData);
   }
 
-  @Override
   @Async
   @Scheduled(fixedDelay = 60000)
   public void reportStatusOfGenerateStatisticForAll() {

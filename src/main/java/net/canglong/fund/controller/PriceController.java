@@ -19,6 +19,11 @@ public class PriceController {
   @Resource
   private PriceService priceService;
 
+  @GetMapping(value = "/name/{name}")
+  public Object getByName(@PathVariable("name") String name, Pageable pageable) {
+    return priceService.findByName(name, pageable);
+  }
+
   @GetMapping(value = "/{id}")
   public Object get(@PathVariable("id") String id, Pageable pageable) {
     return priceService.findByFundId(id, pageable);
@@ -59,7 +64,7 @@ public class PriceController {
 
   @GetMapping(value = "/fund/{id}/startDate")
   public Object findStartDate(@PathVariable("id") String id) {
-    return priceService.findStartDateById(id);
+    return priceService.findPriceAtCreationById(id);
   }
 
   @GetMapping(value = "/fund/{id}/priceAtYearStart")
@@ -67,22 +72,20 @@ public class PriceController {
     return priceService.findYearPriceById(id);
   }
 
-//  @PostMapping(value = "/ingestion/{threadCount}")
-//  public Object startIngestionJob(
-//      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
-//    if (threadCount == null) {
-//      return priceService.startPriceRetrievalJob(10);
-//    }
-//    return priceService.startPriceRetrievalJob(threadCount);
-//  }
-//
-//  @GetMapping(value = "/ingestion")
-//  public Object getIngestionJobStatus() {
-//    return priceService.getPriceRetrievalJobStatus();
-//  }
-//
-//  @DeleteMapping(value = "/ingestion")
-//  public Object stopIngestionJob() {
-//    return priceService.stopPriceRetrievalJob();
-//  }
+  @PostMapping(value = "/ingestion/{threadCount}")
+  public Object startIngestionJob(
+      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
+    return priceService.startPriceRetrievalJob();
+  }
+
+  @GetMapping(value = "/ingestion")
+  public Object getIngestionJobStatus() {
+    return priceService.getPriceRetrievalJobStatus();
+  }
+
+  @DeleteMapping(value = "/ingestion")
+  public Object stopIngestionJob() {
+    return priceService.stopPriceRetrievalJob();
+  }
+
 }

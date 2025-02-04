@@ -8,8 +8,6 @@ import net.canglong.fund.entity.YearRate;
 import net.canglong.fund.vo.YearAverageRate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 
 public interface RateService {
 
@@ -40,9 +38,6 @@ public interface RateService {
   List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period,
       Pageable pageable);
 
-  Boolean generateStatisticData() throws Exception;
-
   Boolean generateStatisticData(List<String> types, boolean refreshAllData);
 
-  void reportStatusOfGenerateStatisticForAll();
 }

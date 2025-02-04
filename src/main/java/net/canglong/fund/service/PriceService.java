@@ -2,7 +2,6 @@ package net.canglong.fund.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.transaction.Transactional;
@@ -33,7 +32,7 @@ public interface PriceService {
   FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate)
       throws Exception;
 
-  Price findStartDateById(String id);
+  Price findPriceAtCreationById(String id);
 
   YearPrice findYearPriceById(String id);
 
@@ -45,9 +44,9 @@ public interface PriceService {
 
   Price findEarliestPriceAfterDate(String id, LocalDate targetDate);
 
-  Date findLatestPriceDate();
+  LocalDate findLatestPriceDateById(String id);
 
-  Date findLatestPriceDateById(String id);
+  LocalDate findEarliestPriceDateById(String id);
 
   Boolean startPriceRetrievalJob();
 
@@ -55,5 +54,4 @@ public interface PriceService {
 
   boolean stopPriceRetrievalJob();
 
-  void reportStatusOfRetrievePriceForAll();
 }

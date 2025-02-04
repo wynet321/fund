@@ -22,5 +22,9 @@ public class Fund {
   private int currentPage = 0;
   @Column(name = "statistic_due_date")
   private LocalDate statisticDueDate;
+  @Column(name = "start_date")
+  private LocalDate startDate;
+  @Column(name = "end_date")
+  private LocalDate endDate;
 
 }
