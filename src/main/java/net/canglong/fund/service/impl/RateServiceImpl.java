@@ -25,7 +25,10 @@ import net.canglong.fund.service.FundService;
 import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.RateService;
 import net.canglong.fund.vo.YearAverageRate;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,7 +40,8 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class RateServiceImpl implements RateService {
 
-  private final PeriodRateRepo periodRateRepo;
+  @Resource
+  private PeriodRateRepo periodRateRepo;
   @Resource
   private MonthRateRepo monthRateRepo;
   @Resource
@@ -224,33 +228,23 @@ public class RateServiceImpl implements RateService {
   }
 
   @Override
-  public Page<PeriodRate> getOneYearRateDesc(List<String> types, Pageable pageable) {
-    return periodRateRepo.getPeriodRateOrderByOneYearRateDesc(types, pageable);
-  }
-
-  @Override
-  public Page<PeriodRate> getThreeYearRateDesc(List<String> types, Pageable pageable) {
-    return periodRateRepo.getPeriodRateOrderByThreeYearRateDesc(types, pageable);
-  }
-
-  @Override
-  public Page<PeriodRate> getFiveYearRateDesc(List<String> types, Pageable pageable) {
-    return periodRateRepo.getPeriodRateOrderByFiveYearRateDesc(types, pageable);
-  }
-
-  @Override
-  public Page<PeriodRate> getEightYearRateDesc(List<String> types, Pageable pageable) {
-    return periodRateRepo.getPeriodRateOrderByEightYearRateDesc(types, pageable);
-  }
-
-  @Override
-  public Page<PeriodRate> getTenYearRateDesc(List<String> types, Pageable pageable) {
-    return periodRateRepo.getPeriodRateOrderByTenYearRateDesc(types, pageable);
+  public Page<PeriodRate> getPeriodRateDesc(String type, Pageable pageable) {
+    return periodRateRepo.findByType(type, pageable);
   }
 
   @Override
   public List<YearRate> getYearRateById(String fundId) {
     return yearRateRepo.findAllById(fundId);
+  }
+
+  @Override
+  public PeriodRate getYearRateByIdAndYear(String fundId) {
+    return periodRateRepo.findById(fundId).orElse(null);
+  }
+
+  @Override
+  public List<PeriodRate> getYearRateByName(String fundName) {
+    return periodRateRepo.findByNameContaining(fundName);
   }
 
   @Override
@@ -272,7 +266,7 @@ public class RateServiceImpl implements RateService {
     return yearAverageRates;
   }
 
-  @Scheduled(fixedDelay = 108000000)
+  // @Scheduled(fixedDelay = 108000000)
   @Async
   public Boolean generateStatisticData() {
     return generate(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);

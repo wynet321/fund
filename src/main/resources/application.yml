@@ -6,7 +6,7 @@ spring:
       enabled:DETECT
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/canglong?useSsl=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    url: jdbc:mariadb://localhost:3306/canglong?useSsl=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&characterEncoding=UTF-8
     username: root
     password: passw0rd
     hikari:
@@ -36,4 +36,8 @@ server:
   address: localhost
   servlet:
     contextPath: /fund
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   port: 9000

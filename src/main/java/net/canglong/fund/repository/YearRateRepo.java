@@ -15,6 +15,15 @@ public interface YearRateRepo extends JpaRepository<YearRate, YearRateIdentity> 
   @Query(value = "select entity from YearRate entity where fund_id=?1")
   List<YearRate> findAllById(String fundId);
 
+  @Query(value = "select entity from YearRate entity where fund_id=?1 and year=?2")
+  YearRate findByIdAndYear(String fundId, int year);
+
+  @Query(value = "select entity from YearRate entity where name like %?1%")
+  List<YearRate> findByNameContaining(String fundName);
+
+  @Query(value = "select entity from YearRate entity where name like %?1% and year=?2")
+  YearRate findByNameAndYear(String fundName, int year);
+
   @Query(value = "SELECT entity FROM YearRate entity where YEAR=:year and type IN :types ORDER BY rate DESC")
   Page<YearRate> findAllByTypesAndYear(List<String> types, int year, Pageable pageable);
 

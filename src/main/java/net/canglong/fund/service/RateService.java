@@ -13,6 +13,10 @@ public interface RateService {
 
   List<YearRate> getYearRateById(String fundId);
 
+  PeriodRate getYearRateByIdAndYear(String fundId);
+
+  List<PeriodRate> getYearRateByName(String fundName);
+
   Boolean generate(String fundId, boolean refreshAllData) throws Exception;
 
   List<MonthRate> getMonthRateById(String fundId, int year);
@@ -21,15 +25,7 @@ public interface RateService {
 
   Status getStatisticJobStatus();
 
-  Page<PeriodRate> getOneYearRateDesc(List<String> types, Pageable pageable);
-
-  Page<PeriodRate> getThreeYearRateDesc(List<String> types, Pageable pageable);
-
-  Page<PeriodRate> getFiveYearRateDesc(List<String> types, Pageable pageable);
-
-  Page<PeriodRate> getEightYearRateDesc(List<String> types, Pageable pageable);
-
-  Page<PeriodRate> getTenYearRateDesc(List<String> types, Pageable pageable);
+  Page<PeriodRate> getPeriodRateDesc(String type, Pageable pageable);
 
   PeriodRate generatePeriodRate(String fundId) throws Exception;
 
