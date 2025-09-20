@@ -15,8 +15,11 @@ public class PeriodRate {
 
   @Id
   private String id;
+  @Column(name = "name")
   private String name;
+  @Column(name = "company_name")
   private String companyName;
+  @Column(name = "type")
   private String type;
   @Column(name = "one_year_rate")
   private BigDecimal oneYearRate;

@@ -76,8 +76,25 @@ public class RateController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "1") int size,
       @RequestParam(defaultValue = "one_year_rate,desc") String[] sort) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sort[1]), sort[0]));
+    // Parse the sort parameter correctly
+    String sortField = sort[0];
+    String sortDirection = sort.length > 1 ? sort[1] : "desc";
+    
+    // Convert snake_case field names to camelCase for Spring Data JPA sorting
+    String camelCaseField = convertToCamelCase(sortField);
+    
+    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), camelCaseField));
     return rateService.getPeriodRateDesc(type, pageable);
+  }
+  
+  private String convertToCamelCase(String snakeCase) {
+    String[] parts = snakeCase.split("_");
+    StringBuilder camelCase = new StringBuilder(parts[0]);
+    for (int i = 1; i < parts.length; i++) {
+      camelCase.append(parts[i].substring(0, 1).toUpperCase())
+               .append(parts[i].substring(1));
+    }
+    return camelCase.toString();
   }
 
 }
