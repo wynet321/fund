@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Check if directory exists
+if [ ! -d "/f/bilibili" ]; then
+    echo "Error: Directory /f/bilibili does not exist"
+    exit 1
+fi
+
+cd /f/bilibili
+
+# Check for files with ERROR and rerun them
+for file in *.txt; do
+    # Skip if no .txt files exist
+    [ ! -f "$file" ] && continue
+    
+    result=`cat "${file}" | grep 'ERROR:'`
+    if [ -n "$result" ]; then
+        # Fix file naming logic - remove 'log' from start and '.txt' from end
+        number=`echo "${file}" | sed 's/^log//' | sed 's/\.txt$//'`
+        script_name=`echo "${file}" | sed 's/log/run/g' | sed 's/txt/sh/g'`
+        
+        # Check if script exists before running
+        if [ -f "$script_name" ]; then
+            echo "rerun $number"
+            ./"$script_name" > "rerun_log$number.txt" 2>&1 &
+        else
+            echo "Warning: Script $script_name not found for file $file"
+        fi
+    else
+        echo "No ERROR found in $file - process completed successfully!"
+    fi
+done
+
+# Wait for all yt-dlp processes to complete
+echo "Waiting for all download processes to complete..."
+while true; do
+    threads=$(ps -ef | grep "[y]t-dlp" | wc -l)
+    if [ $threads -eq 0 ]; then
+        echo "All download processes have completed"
+        break
+    else
+        echo "Still waiting for $threads yt-dlp processes to complete..."
+        sleep 10
+    fi
+done
+
+# Check for remaining files with ERROR after rerun
+echo "Files still containing ERROR after rerun:"
+for file in *.txt; do
+    [ ! -f "$file" ] && continue
+    
+    result=`cat "${file}" | grep 'ERROR:'`
+    if [ -n "$result" ]; then
+        echo "${file}"
+    fi
+done
+
+echo "Proceed?(Y/N)"
+read continue
+if [ "$continue" = "Y" ]; then
+# Copy database file if it exists
+    if [ -f "bilibili_keys.db" ]; then
+        cp -f bilibili_keys.db ../
+        echo "Database copied successfully"
+    else
+        echo "Warning: bilibili_keys.db not found"
+    fi
+fi

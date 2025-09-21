@@ -1,0 +1,170 @@
+#!/bin/bash
+
+# Set error handling
+set -e
+
+# Configuration
+BILIBILI_DIR="/f/bilibili"
+MAX_THREADS=5
+SLEEP_INTERVAL=30
+
+# Function to check if directory exists
+check_directory() {
+    if [ ! -d "$BILIBILI_DIR" ]; then
+        echo "Error: Directory $BILIBILI_DIR does not exist"
+        exit 1
+    fi
+}
+
+# Function to validate API response
+validate_api_response() {
+    local response="$1"
+    if [ -z "$response" ] || echo "$response" | grep -q "error"; then
+        echo "Error: Invalid API response"
+        return 1
+    fi
+    return 0
+}
+
+# Main script
+if [ -z "$1" ]; then
+    echo "Please input cookie as 1st parameter"
+    exit 1
+fi
+
+# Clean and validate cookie
+cookie=$(echo "$1" | sed 's/\s//g')
+if [ -z "$cookie" ]; then
+    echo "Error: Cookie cannot be empty after cleaning"
+    exit 1
+fi
+
+loop=1
+
+# Check if directory exists before changing to it
+check_directory
+cd "$BILIBILI_DIR" || {
+    echo "Error: Cannot change to directory $BILIBILI_DIR"
+    exit 1
+}
+
+# Clean up old files
+rm -f *.txt run*.sh
+
+# Main API loop
+while true; do
+    echo "Fetching page $loop..."
+    
+    # Make API request with proper error handling
+    result=$(curl -s 'https://api.bilibili.com/x/v3/fav/resource/list?media_id=1541544294&pn='$loop'&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web' \
+        -H 'cookie: '"$cookie" || {
+        echo "Error: Failed to fetch data from API"
+        exit 1
+    })
+    
+    # Validate API response
+    if ! validate_api_response "$result"; then
+        echo "Error: Invalid response from API on page $loop"
+        break
+    fi
+    
+    # Extract bvid keys
+    keys=$(echo "$result" | grep -oP '"bvid":"[^"]+"' | sed 's/"bvid":"//g' | sed 's/"//g')
+    
+    if [ -z "$keys" ]; then
+        echo "No more videos found, stopping at page $loop"
+        break
+    fi
+    
+    # Process each key
+    while IFS= read -r key; do
+        if [ -n "$key" ]; then
+            # Check if key already exists in database
+            if grep -q "$key" bilibili_keys.db 2>/dev/null; then
+                condition="Yes"
+            else
+                condition="No"
+            fi
+            
+            if [ "$condition" = "No" ]; then
+                echo "$key" >> bilibili_keys.db
+                echo "yt-dlp https://www.bilibili.com/video/$key" >> "run$loop.sh"
+                echo "Added new video: $key"
+            fi
+        fi
+    done <<< "$keys"
+    
+    loop=$((loop + 1))
+done
+
+echo "Data collection complete. Found $((loop - 1)) pages."
+echo "Proceed with download? (Y/N)"
+read -r continue
+
+if [ "$continue" = "Y" ] || [ "$continue" = "y" ]; then
+    iter=1
+    max_iter=$loop
+    
+    while [ $iter -lt $max_iter ]; do
+        # Count running yt-dlp processes
+        threads=$(ps -ef | grep "[y]t-dlp" | wc -l)
+        
+        if [ $threads -lt $MAX_THREADS ]; then
+            threads_to_start=$((MAX_THREADS - threads))
+            started=0
+            
+            # Start new processes
+            for ((n = 0; n < threads_to_start && iter < max_iter; n++)); do
+                if [ -f "run$iter.sh" ]; then
+                    echo "Starting download batch $iter..."
+                    ./run$iter.sh > "log$iter.txt" 2>&1 &
+                    echo "Started process for batch $iter"
+                    started=$((started + 1))
+                fi
+                iter=$((iter + 1))
+            done
+            
+            if [ $started -eq 0 ]; then
+                echo "No more batches to process"
+                break
+            fi
+        fi
+        
+        echo "Waiting $SLEEP_INTERVAL seconds... (Current threads: $threads)"
+        sleep $SLEEP_INTERVAL
+    done
+    
+    echo "All download processes started"
+fi
+
+# Wait for all yt-dlp processes to complete
+echo "Waiting for all download processes to complete..."
+while true; do
+    threads=$(ps -ef | grep "[y]t-dlp" | wc -l)
+    if [ $threads -eq 0 ]; then
+        echo "All download processes have completed"
+        break
+    else
+        echo "Still waiting for $threads yt-dlp processes to complete..."
+        sleep 10
+    fi
+done
+
+# Error handling and retry logic
+echo "Checking for errors and retrying failed downloads..."
+for file in *.txt; do
+    if [ -f "$file" ]; then
+        result=$(cat "$file" | grep 'ERROR:' || true)
+        if [ -n "$result" ]; then
+            number=$(echo "$file" | sed 's/log//g' | sed 's/.txt//g')
+            echo "Retrying failed download: $number"
+            run_script=$(echo "$file" | sed 's/log/run/g' | sed 's/txt/sh/g')
+            if [ -f "$run_script" ]; then
+                ./"$run_script" > "log$number.txt" 2>&1 &
+                echo "Restarted process for batch $number"
+            fi
+        fi
+    fi
+done
+
+echo "Script completed"

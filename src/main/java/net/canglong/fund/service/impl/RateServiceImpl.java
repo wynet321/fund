@@ -25,16 +25,12 @@ import net.canglong.fund.service.FundService;
 import net.canglong.fund.service.PriceService;
 import net.canglong.fund.service.RateService;
 import net.canglong.fund.vo.YearAverageRate;
-
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-
 
 @Service
 @Log4j2
@@ -266,7 +262,7 @@ public class RateServiceImpl implements RateService {
     return yearAverageRates;
   }
 
-  // @Scheduled(fixedDelay = 108000000)
+  @Scheduled(fixedDelay = 108000000)
   @Async
   public Boolean generateStatisticData() {
     return generate(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);

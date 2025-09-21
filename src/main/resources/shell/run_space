@@ -1,0 +1,155 @@
+#!/bin/bash
+if [ -z "$1" ]; then
+    echo "Please input cookie as 1st parameter"
+    exit 1
+fi
+
+# Validate required files and directories
+if [ ! -f "/f/space_list.db" ]; then
+    echo "Error: /f/space_list.db not found"
+    exit 1
+fi
+
+if [ ! -d "/f/bilibili" ]; then
+    echo "Error: /f/bilibili directory not found"
+    exit 1
+fi
+
+cookie=`echo $1|sed 's/[[:space:]]//g'`
+cd /f/bilibili
+rm -f *.txt run*.sh
+keys=""
+echo "Fetching data for all seasons..."
+while read -r seasonid
+do
+url="https://api.bilibili.com/x/space/fav/season/list?season_id=$seasonid"
+result=`curl -s -b "$cookie" "$url"`
+# echo "\"$url\""
+if [ $? -ne 0 ] || [ -z "$result" ] || echo "$result" | grep -q '"code":-404'; then
+    echo "Warning: Failed to fetch data for season $seasonid"
+    # Remove the failed seasonid from space_list.db
+    # sed -i "/^$seasonid$/d" "/f/space_list.db"
+    continue
+else
+    echo "Successfully fetched data for season $seasonid"
+fi
+bvid_list=`echo $result |grep -o '"bvid":"[^"]*"' | sed 's/"bvid":"//g' | sed 's/"//g'`
+if [ -n "$bvid_list" ]; then
+    keys="$keys $bvid_list"
+fi
+done < "/f/space_list.db"
+if [ -z "${keys}" ]; then
+    exit 0
+fi
+loop=1
+count=0
+# Initialize first script file
+echo "#!/bin/bash" > /f/bilibili/run$loop.sh
+chmod +x /f/bilibili/run$loop.sh
+
+while read -a key
+do
+    condition=`grep -q "$key" bilibili_keys.db && echo "Yes" || echo "No"`
+    if [  $condition == "No" ];  then
+        echo "$key">>bilibili_keys.db
+        echo "yt-dlp https://www.bilibili.com/video/$key">>/f/bilibili/run$loop.sh
+        count=$((count+1))
+        if [ $((count % 10)) == 0 ]; then
+            loop=$((loop+1))
+            echo "#!/bin/bash" > /f/bilibili/run$loop.sh
+            chmod +x /f/bilibili/run$loop.sh
+        fi
+    fi
+done <<< $keys
+
+# Clean up empty script files
+for i in $(seq 1 $loop); do
+    if [ -f "run$i.sh" ] && [ ! -s "run$i.sh" ]; then
+        rm -f "run$i.sh"
+        echo "Removed empty run$i.sh"
+    fi
+    if [ -f "run$i.sh" ] && [ $(wc -l < "run$i.sh") -le 1 ]; then
+        rm -f "run$i.sh"
+        echo "Removed run$i.sh (only shebang)"
+    fi
+done
+
+# Update loop count based on actual script files
+loop=`ls run*.sh 2>/dev/null | wc -l`
+if [ $loop -eq 0 ]; then
+    echo "No scripts to execute"
+    exit 0
+fi
+
+echo "Found $loop script files to execute"
+iter=1
+while [ $iter -le $loop ];
+do
+    threads=`ps -ef|grep yt-dlp |grep -v grep |wc -l`
+    if [ $threads -lt 5 ]; then
+        for (( n=0; n< 5-$threads; n++));
+        do
+            if [ -f "run$iter.sh" ]; then
+                ./run$iter.sh > log$iter.txt 2>&1 &
+                echo "Started run$iter.sh"
+            else
+                echo "Warning: run$iter.sh not found, skipping"
+            fi
+            iter=$((iter+1))
+            if [ $iter -gt $loop ]; then
+                break 2  # Break out of both loops
+            fi
+        done
+    fi
+    sleep 30s
+done
+
+# Wait for all yt-dlp processes to complete
+echo "Waiting for all download processes to complete..."
+while true; do
+    threads=$(ps -ef | grep "[y]t-dlp" | wc -l)
+    if [ $threads -eq 0 ]; then
+        echo "All download processes have completed"
+        break
+    else
+        echo "Still waiting for $threads yt-dlp processes to complete..."
+        sleep 10
+    fi
+done
+
+echo "Checking for failed downloads..."
+for file in *.txt; do
+    if [[ "$file" =~ ^log[0-9]+\.txt$ ]]; then
+        result=`cat "${file}"|grep 'ERROR:'`
+        if [ -n "$result" ]; then
+            number=`echo "${file}" |sed 's/log//g'| sed 's/.txt//g'`
+            run_script="run$number.sh"
+            if [ -f "$run_script" ]; then
+                echo "Retrying $number"
+                ./"$run_script" > log$number.txt 2>&1 &
+                sleep 5  # Small delay to avoid overwhelming the system
+            else
+                echo "Warning: $run_script not found for retry"
+            fi
+        fi
+    fi
+done
+
+# Wait for all yt-dlp processes to complete
+echo "Waiting for all download processes to complete..."
+while true; do
+    threads=$(ps -ef | grep "[y]t-dlp" | wc -l)
+    if [ $threads -eq 0 ]; then
+        echo "All download processes have completed"
+        break
+    else
+        echo "Still waiting for $threads yt-dlp processes to complete..."
+        sleep 10
+    fi
+done
+
+echo "Proceed?(Y/N)"
+read continue
+if [ "$continue" = "Y" ]; then
+    cp -f bilibili_keys.db ../
+fi
