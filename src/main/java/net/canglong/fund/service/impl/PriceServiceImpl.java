@@ -52,7 +52,7 @@ public class PriceServiceImpl implements PriceService {
   private int fundCount = 0;
   @Resource
   private CompanyService companyService;
-  @Value("${spring.threadCount}")
+  @Value("${fund.threadCount}")
   private int threadCount;
 
   @Override
