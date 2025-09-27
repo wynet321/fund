@@ -254,7 +254,7 @@ public class PriceServiceImpl implements PriceService {
 
   @Override
   @Async
-  // @Scheduled(fixedDelay = 86400000)
+  @Scheduled(fixedDelay = 86400000)
   public Boolean startPriceRetrievalJob() {
     log.info("Start to retrieve fund information...");
     log.info("Website retrieval thread count is {}", threadCount);
