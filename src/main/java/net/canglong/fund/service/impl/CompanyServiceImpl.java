@@ -2,7 +2,7 @@ package net.canglong.fund.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.repository.CompanyRepo;
 import net.canglong.fund.service.CompanyService;

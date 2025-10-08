@@ -1,8 +1,8 @@
 package net.canglong.fund.entity;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +25,7 @@ public class MonthRateIdentity implements Serializable {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((fundId == null) ? 0 : fundId.hashCode());
+    result = prime * result + year;
     result = prime * result + month;
     return result;
   }
@@ -46,6 +47,9 @@ public class MonthRateIdentity implements Serializable {
         return false;
       }
     } else if (!fundId.equals(other.fundId)) {
+      return false;
+    }
+    if (year != other.year) {
       return false;
     }
     return month == other.month;

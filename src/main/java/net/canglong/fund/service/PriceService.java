@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import net.canglong.fund.entity.MonthAveragePrice;
 import net.canglong.fund.entity.Price;
 import net.canglong.fund.entity.Status;
@@ -48,10 +48,12 @@ public interface PriceService {
 
   LocalDate findEarliestPriceDateById(String id);
 
-  Boolean startPriceRetrievalJob();
+  Boolean startPriceRetrievalJob(int threadCount);
 
   Status getPriceRetrievalJobStatus();
 
   boolean stopPriceRetrievalJob();
+
+  List<Price> findByFundIdAndDateRange(String fundId, LocalDate startDate, LocalDate endDate);
 
 }

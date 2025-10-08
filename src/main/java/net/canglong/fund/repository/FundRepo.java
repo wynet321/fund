@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FundRepo extends JpaRepository<Fund, String> {
 
-  @Query("select entity from Fund entity where company_id=?1")
+  @Query("select entity from Fund entity where entity.companyId = ?1")
   Page<Fund> findAllByCompanyId(String companyId, Pageable pageable);
 
   Fund findByName(String name);
@@ -27,4 +27,10 @@ public interface FundRepo extends JpaRepository<Fund, String> {
 
   @Query(nativeQuery = true, value = "select distinct type from fund")
   List<String> findAllTypes();
+
+  @Query("select entity from Fund entity where entity.name like %?1% order by entity.name")
+  List<Fund> findByNameContaining(String keyword);
+
+  @Query("select entity from Fund entity where entity.name like %?1% or entity.id like %?1% order by entity.name")
+  List<Fund> findByNameOrIdContaining(String keyword);
 }

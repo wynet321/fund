@@ -5,12 +5,13 @@ import net.canglong.fund.entity.MonthRate;
 import net.canglong.fund.entity.MonthRateIdentity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MonthRateRepo extends JpaRepository<MonthRate, MonthRateIdentity> {
 
-  @Query(value = "select entity from MonthRate entity where fund_id=:fundId and year=:year order by month asc")
-  List<MonthRate> findAllById(String fundId, int year);
+  @Query("select m from MonthRate m where m.monthRateIdentity.fundId = :fundId and m.monthRateIdentity.year = :year order by m.monthRateIdentity.month asc")
+  List<MonthRate> findAllById(@Param("fundId") String fundId, @Param("year") int year);
 
 }

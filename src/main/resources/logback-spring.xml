@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE xml>
+<!DOCTYPE configuration>
 <configuration>
   <appender class="ch.qos.logback.core.ConsoleAppender"
     name="STDOUT">
@@ -33,7 +33,7 @@
     <file>logs/service.log</file>
     <rollingPolicy
       class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-      rollover daily
+      <!-- rollover daily -->
       <fileNamePattern>logs/service.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
       <maxFileSize>100MB</maxFileSize>
       <maxHistory>10</maxHistory>

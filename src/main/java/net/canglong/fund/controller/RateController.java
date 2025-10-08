@@ -1,7 +1,9 @@
 package net.canglong.fund.controller;
 
 import java.util.List;
-import javax.annotation.Resource;
+import java.util.Set;
+import java.util.HashSet;
+import jakarta.annotation.Resource;
 import net.canglong.fund.service.RateService;
 
 import org.springframework.data.domain.PageRequest;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/api/rate", headers = "Accept=application/json")
+@RequestMapping(value = "/api/rate")
 public class RateController {
 
   @Resource
@@ -79,10 +81,18 @@ public class RateController {
     // Parse the sort parameter correctly
     String sortField = sort[0];
     String sortDirection = sort.length > 1 ? sort[1] : "desc";
-    
+    // Validate sort field against allowed list
+    Set<String> allowedSortFields = new HashSet<>(List.of(
+        "one_year_rate", "two_year_rate", "three_year_rate", "four_year_rate", "five_year_rate",
+        "six_year_rate", "seven_year_rate", "eight_year_rate", "nine_year_rate", "ten_year_rate",
+        "name", "company_name", "type"
+    ));
+    if (!allowedSortFields.contains(sortField)) {
+      sortField = "one_year_rate"; // default safe field
+    }
     // Convert snake_case field names to camelCase for Spring Data JPA sorting
     String camelCaseField = convertToCamelCase(sortField);
-    
+
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), camelCaseField));
     return rateService.getPeriodRateDesc(type, pageable);
   }

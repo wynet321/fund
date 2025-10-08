@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tryItOutEnabled: true
+  api-docs:
+    enabled: true

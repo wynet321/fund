@@ -1,7 +1,7 @@
 package net.canglong.fund.service;
 
 import java.util.List;
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import net.canglong.fund.entity.Fund;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +34,9 @@ public interface FundService {
   List<Fund> findAllByTypes(List<String> types);
 
   List<String> findAllTypes();
+
+  List<Fund> searchByNameContaining(String keyword, int limit);
+
+  List<Fund> searchByNameOrIdContaining(String keyword, int limit);
 
 }

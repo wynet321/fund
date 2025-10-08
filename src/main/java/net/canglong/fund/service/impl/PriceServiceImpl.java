@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Resource;
+import java.util.concurrent.atomic.AtomicInteger;
+import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
@@ -46,10 +47,12 @@ public class PriceServiceImpl implements PriceService {
   private WebsiteDataService websiteDataService;
   @Resource
   private FundService fundService;
+  @Resource(name = "priceExecutor")
   private ThreadPoolTaskExecutor priceExecutor;
+  @Resource(name = "fundExecutor")
   private ThreadPoolTaskExecutor fundExecutor;
   private long startTime;
-  private int fundCount = 0;
+  private final AtomicInteger fundCount = new AtomicInteger(0);
   @Resource
   private CompanyService companyService;
   @Value("${fund.threadCount}")
@@ -113,6 +116,14 @@ public class PriceServiceImpl implements PriceService {
   public FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) {
     Price priceAtStartDate = priceRepo.findLatestPriceBeforeDate(id, startDate);
     Price priceAtEndDate = priceRepo.findLatestPriceBeforeDate(id, endDate);
+    // Guard against nulls and divide-by-zero
+    if (priceAtStartDate == null || priceAtEndDate == null
+        || priceAtStartDate.getAccumulatedPrice() == null
+        || BigDecimal.ZERO.compareTo(priceAtStartDate.getAccumulatedPrice()) == 0
+        || priceAtEndDate.getAccumulatedPrice() == null) {
+      Fund fund = fundService.findById(id);
+      return new FundPercentage(id, fund != null ? fund.getName() : id, "0.00%", startDate, endDate);
+    }
     BigDecimal ratio = priceAtEndDate.getAccumulatedPrice()
         .subtract(priceAtStartDate.getAccumulatedPrice())
         .divide(priceAtStartDate.getAccumulatedPrice(), 2, RoundingMode.HALF_UP);
@@ -148,7 +159,7 @@ public class PriceServiceImpl implements PriceService {
     for (int i = 0; i < years; i++) {
       LocalDate date = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
       Price price = priceRepo.findLatestPriceBeforeDate(id, date);
-      if (price.getAccumulatedPrice() != null) {
+      if (price != null && price.getAccumulatedPrice() != null) {
         priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(),
             price.getAccumulatedPrice()));
       }
@@ -254,8 +265,10 @@ public class PriceServiceImpl implements PriceService {
 
   @Override
   @Async
-  @Scheduled(fixedDelay = 86400000)
-  public Boolean startPriceRetrievalJob() {
+  public Boolean startPriceRetrievalJob(int threadCount) {
+    if (threadCount <= 0) {
+      threadCount = this.threadCount;
+    }
     log.info("Start to retrieve fund information...");
     log.info("Website retrieval thread count is {}", threadCount);
     if (priceExecutor == null || priceExecutor.getThreadPoolExecutor().isShutdown()) {
@@ -282,12 +295,20 @@ public class PriceServiceImpl implements PriceService {
     return false;
   }
 
+  @Async
+  @Scheduled(fixedDelay = 86400000)
+  public Boolean startPriceRetrievalJob() {
+    return startPriceRetrievalJob(this.threadCount);
+  }
+
   @Override
   public Status getPriceRetrievalJobStatus() {
     Status status = new Status();
     if (fundExecutor != null && fundExecutor.getThreadPoolExecutor().isTerminated()) {
-      status.setTotalFundCount(fundCount);
-      priceExecutor.getThreadPoolExecutor().shutdown();
+      status.setTotalFundCount(fundCount.get());
+      if (priceExecutor != null) {
+        priceExecutor.getThreadPoolExecutor().shutdown();
+      }
     }
     if (priceExecutor != null) {
       status.setLeftFundCount(priceExecutor.getThreadPoolExecutor().getQueue().size());
@@ -309,6 +330,11 @@ public class PriceServiceImpl implements PriceService {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public List<Price> findByFundIdAndDateRange(String fundId, LocalDate startDate, LocalDate endDate) {
+    return priceRepo.findByFundIdAndDateRange(fundId, startDate, endDate);
   }
 
   class PriceTask implements Runnable {
@@ -345,7 +371,7 @@ public class PriceServiceImpl implements PriceService {
             websiteDataService.getFunds(companyId, savedCompany.getAbbr()));
         log.info("Total {} funds found for {}", fundList.size(),
             savedCompany.getName());
-        fundCount += fundList.size();
+        fundCount.addAndGet(fundList.size());
         for (Fund fund : fundList) {
           priceExecutor.execute(new PriceTask(fund.getId()));
         }

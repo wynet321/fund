@@ -15,14 +15,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PriceRepo extends JpaRepository<Price, PriceIdentity> {
 
-    @Query(nativeQuery = true, countProjection = "*", value = "select fund_id, date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date>=:startDate")
+    @Query(nativeQuery = true, countProjection = "*", value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date>=:startDate")
     Page<Price> findPriceSet(@Param("fundId") String fundId, @Param("startDate") LocalDate startDate,
             Pageable pageable);
 
     @Query(nativeQuery = true, countProjection = "*", value = "select fund_id, price_date, price, accumulated_price,return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId")
     Page<Price> findLatestPriceBeforeDate(@Param("fundId") String fundId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select fund_id, cast(avg(accumulated_price) as decimal(7,4)) as averagePrice, year(date)*100+month(date) as month from fund_price where fund_id=:fundId and price_date>:startDate group by year(date), month(date) order by month asc")
+    @Query(nativeQuery = true, value = "select fund_id, cast(avg(accumulated_price) as decimal(7,4)) as averagePrice, year(price_date)*100+month(price_date) as month from fund_price where fund_id=:fundId and price_date>:startDate group by year(price_date), month(price_date) order by month asc")
     List<MonthAveragePrice> findAllMonthAveragePriceByFundId(@Param("fundId") String fundId,
             @Param("startDate") LocalDate startDate);
 
@@ -42,5 +42,10 @@ public interface PriceRepo extends JpaRepository<Price, PriceIdentity> {
 
     @Query(nativeQuery = true, value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date=(select min(price_date) from fund_price where fund_id=:fundId)")
     Price findPriceAtCreationById(@Param("fundId") String fundId);
+
+    @Query(nativeQuery = true, value = "select fund_id, price_date, price, accumulated_price, return_of_ten_kilo, seven_day_annualized_rate_of_return from fund_price where fund_id=:fundId and price_date>=:startDate and price_date<=:endDate order by price_date asc")
+    List<Price> findByFundIdAndDateRange(@Param("fundId") String fundId, 
+                                          @Param("startDate") LocalDate startDate, 
+                                          @Param("endDate") LocalDate endDate);
 
 }

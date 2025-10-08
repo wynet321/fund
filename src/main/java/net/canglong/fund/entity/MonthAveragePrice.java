@@ -1,15 +1,9 @@
 package net.canglong.fund.entity;
 
 import java.math.BigDecimal;
-import javax.persistence.Column;
-import lombok.Data;
 
-@Data
-public class MonthAveragePrice {
-
-  @Column(name = "month")
-  int month;
-  @Column(name = "averagePrice")
-  BigDecimal averagePrice;
-
+// Interface-based projection for native query mapping in Spring Data
+public interface MonthAveragePrice {
+  Integer getMonth();
+  BigDecimal getAveragePrice();
 }

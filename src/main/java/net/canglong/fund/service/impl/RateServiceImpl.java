@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
@@ -48,6 +48,7 @@ public class RateServiceImpl implements RateService {
   private PriceService priceService;
   @Resource
   private CompanyService companyService;
+  @Resource(name = "statisticExecutor")
   private ThreadPoolTaskExecutor executor;
   private long startTime;
 
@@ -262,28 +263,10 @@ public class RateServiceImpl implements RateService {
     return yearAverageRates;
   }
 
-  @Scheduled(fixedDelay = 108000000)
-  @Async
-  public Boolean generateStatisticData() {
-    return generate(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);
-  }
 
   @Override
   public Boolean generateStatisticData(List<String> types, boolean refreshAllData) {
     return generate(types, refreshAllData);
   }
 
-  @Async
-  @Scheduled(fixedDelay = 60000)
-  public void reportStatusOfGenerateStatisticForAll() {
-    Status status = getStatisticJobStatus();
-    if (status.isTerminated() && executor != null) {
-      log.info("\n*******************\nStatistic job was completed.\n*******************");
-      executor = null;
-    } else if (status.getAliveThreadCount() > 0) {
-      log.info(
-          "\n*******************\nStatistic generation\nLeft fund count: {}\nElapse Time: {}\nActive Threads: {}\n*******************",
-          status.getLeftFundCount(), status.getElapseTime(), status.getAliveThreadCount());
-    }
-  }
 }

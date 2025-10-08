@@ -1,7 +1,7 @@
 package net.canglong.fund.controller;
 
 import java.time.LocalDate;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import net.canglong.fund.service.PriceService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/api/price", headers = "Accept=application/json")
+@RequestMapping(value = "/api/price")
 public class PriceController {
 
   @Resource
@@ -31,8 +31,7 @@ public class PriceController {
 
   @GetMapping(value = "/fund/month_avg/{id}/start/{date}")
   public Object getMonthAveragePrice(@PathVariable("id") String id,
-      @PathVariable("date") @DateTimeFormat(
-          iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
+      @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
     return priceService.findAllMonthAveragePriceByFundId(id, startDate);
   }
 
@@ -75,7 +74,7 @@ public class PriceController {
   @PostMapping(value = "/ingestion/{threadCount}")
   public Object startIngestionJob(
       @PathVariable(name = "threadCount", required = false) Integer threadCount) {
-    return priceService.startPriceRetrievalJob();
+    return priceService.startPriceRetrievalJob(threadCount == null ? 0 : threadCount);
   }
 
   @GetMapping(value = "/ingestion")

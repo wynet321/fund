@@ -2,16 +2,18 @@ package net.canglong.fund;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebMvc
 public class CrossOriginConfig implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/**").allowedHeaders("*").allowedOriginPatterns("*").allowedMethods("*")
-        .allowCredentials(true);
+    registry.addMapping("/**")
+        .allowedHeaders("*")
+        .allowedOriginPatterns("*")
+        .allowedMethods("*")
+        // When using wildcard origins, do not allow credentials per CORS spec
+        .allowCredentials(false);
   }
 }

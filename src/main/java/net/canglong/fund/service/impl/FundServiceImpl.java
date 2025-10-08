@@ -2,7 +2,7 @@ package net.canglong.fund.service.impl;
 
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import net.canglong.fund.entity.Fund;
 import net.canglong.fund.repository.FundRepo;
 import net.canglong.fund.service.FundService;
@@ -73,6 +73,18 @@ public class FundServiceImpl implements FundService {
   @Override
   public List<String> findAllTypes() {
     return fundRepo.findAllTypes();
+  }
+
+  @Override
+  public List<Fund> searchByNameContaining(String keyword, int limit) {
+    List<Fund> funds = fundRepo.findByNameContaining(keyword);
+    return funds.size() > limit ? funds.subList(0, limit) : funds;
+  }
+
+  @Override
+  public List<Fund> searchByNameOrIdContaining(String keyword, int limit) {
+    List<Fund> funds = fundRepo.findByNameOrIdContaining(keyword);
+    return funds.size() > limit ? funds.subList(0, limit) : funds;
   }
 
 }
