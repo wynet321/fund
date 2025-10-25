@@ -20,60 +20,60 @@ public class PriceController {
   private PriceService priceService;
 
   @GetMapping(value = "/name/{name}")
-  public Object getByName(@PathVariable("name") String name, Pageable pageable) {
+  public Object getByName(@PathVariable String name, Pageable pageable) {
     return priceService.findByName(name, pageable);
   }
 
   @GetMapping(value = "/{id}")
-  public Object get(@PathVariable("id") String id, Pageable pageable) {
+  public Object get(@PathVariable String id, Pageable pageable) {
     return priceService.findByFundId(id, pageable);
   }
 
   @GetMapping(value = "/fund/month_avg/{id}/start/{date}")
-  public Object getMonthAveragePrice(@PathVariable("id") String id,
+  public Object getMonthAveragePrice(@PathVariable String id,
       @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
     return priceService.findAllMonthAveragePriceByFundId(id, startDate);
   }
 
   @PostMapping(value = "/fund/{id}")
-  public Object create(@PathVariable("id") String id) throws Exception {
+  public Object create(@PathVariable String id) throws Exception {
     return priceService.create(id);
   }
 
   @GetMapping(value = "/fund/{id}/{date}")
-  public Object getByFundIdAndDate(@PathVariable("id") String id,
-      @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+  public Object getByFundIdAndDate(@PathVariable String id,
+      @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
     return priceService.findLatestPriceBeforeDate(id, date);
   }
 
   @GetMapping(value = "/fund/{id}/start/{date}")
-  public Object getPriceFromDate(@PathVariable("id") String id,
+  public Object getPriceFromDate(@PathVariable String id,
       @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       Pageable pageable) {
     return priceService.find(id, startDate, pageable);
   }
 
   @GetMapping(value = "/fund/{id}/start/{startDate}/end/{endDate}")
-  public Object find(@PathVariable("id") String id,
-      @PathVariable("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-      @PathVariable("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
+  public Object find(@PathVariable String id,
+      @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate)
       throws Exception {
     return priceService.findPercentageByDate(id, startDate, endDate);
   }
 
   @GetMapping(value = "/fund/{id}/startDate")
-  public Object findStartDate(@PathVariable("id") String id) {
+  public Object findStartDate(@PathVariable String id) {
     return priceService.findPriceAtCreationById(id);
   }
 
   @GetMapping(value = "/fund/{id}/priceAtYearStart")
-  public Object findYearPriceById(@PathVariable("id") String id) {
+  public Object findYearPriceById(@PathVariable String id) {
     return priceService.findYearPriceById(id);
   }
 
   @PostMapping(value = "/ingestion/{threadCount}")
   public Object startIngestionJob(
-      @PathVariable(name = "threadCount", required = false) Integer threadCount) {
+      @PathVariable(required = false) Integer threadCount) {
     return priceService.startPriceRetrievalJob(threadCount == null ? 0 : threadCount);
   }
 

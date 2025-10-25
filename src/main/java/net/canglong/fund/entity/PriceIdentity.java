@@ -1,5 +1,6 @@
 package net.canglong.fund.entity;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import jakarta.persistence.Column;
@@ -14,7 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PriceIdentity implements Serializable {
 
-  private static final long serialVersionUID = -1767477911376005219L;
+    @Serial
+    private static final long serialVersionUID = -1767477911376005219L;
 
   @Column(name = "fund_id")
   private String fundId;

@@ -16,7 +16,7 @@ public class FundController {
   private FundService fundService;
 
   @GetMapping(value = "/{id}")
-  public Object find(@PathVariable("id") String id) {
+  public Object find(@PathVariable String id) {
     return fundService.findById(id);
   }
 
@@ -26,8 +26,8 @@ public class FundController {
   }
 
   @GetMapping(value = "/search")
-  public Object searchByName(@RequestParam("keyword") String keyword, 
-                              @RequestParam(value = "limit", defaultValue = "10") int limit) {
+  public Object searchByName(@RequestParam String keyword, 
+                              @RequestParam(defaultValue = "10") int limit) {
     return fundService.searchByNameOrIdContaining(keyword, limit);
   }
 }

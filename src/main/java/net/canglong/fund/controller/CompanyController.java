@@ -28,7 +28,7 @@ public class CompanyController {
   }
 
   @GetMapping(value = "/{id}")
-  public Object find(@PathVariable("id") String id) {
+  public Object find(@PathVariable String id) {
     return companyService.find(id);
   }
 

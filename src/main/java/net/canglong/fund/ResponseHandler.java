@@ -23,10 +23,9 @@ public class ResponseHandler {
       if (null == object) {
         responseObject.setData(null);
         responseObject.setSuccess(false);
-      } else if (object instanceof Boolean) {
-        responseObject.setSuccess((Boolean) object);
-      } else if (object instanceof Map) {
-        Map<?, ?> map = (Map<?, ?>) object;
+      } else if (object instanceof Boolean boolean1) {
+        responseObject.setSuccess(boolean1);
+      } else if (object instanceof Map<?, ?> map) {
         responseObject.setSuccess(!map.isEmpty());
         responseObject.setData(object);
       } else {

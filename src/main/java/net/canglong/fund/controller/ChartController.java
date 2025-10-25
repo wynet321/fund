@@ -20,9 +20,9 @@ public class ChartController {
   @GetMapping(value = "/data/{id}")
   public Object getChartData(
       @PathVariable("id") String fundId,
-      @RequestParam(value = "period", defaultValue = "daily") String period,
-      @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-      @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+      @RequestParam(defaultValue = "daily") String period,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
     
     // Set default dates if not provided
     if (endDate == null) {

@@ -1,5 +1,6 @@
 package net.canglong.fund.entity;
 
+import java.io.Serial;
 import java.io.Serializable;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class YearRateIdentity implements Serializable {
 
-  private static final long serialVersionUID = -8108587183162053549L;
+    @Serial
+    private static final long serialVersionUID = -8108587183162053549L;
 
   private String fundId;
   private int year;

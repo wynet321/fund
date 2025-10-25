@@ -1,5 +1,6 @@
 package net.canglong.fund.entity;
 
+import java.io.Serial;
 import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -13,7 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MonthRateIdentity implements Serializable {
 
-  private static final long serialVersionUID = 5044068352262279471L;
+    @Serial
+    private static final long serialVersionUID = 5044068352262279471L;
 
   @Column(name = "fund_id")
   private String fundId;

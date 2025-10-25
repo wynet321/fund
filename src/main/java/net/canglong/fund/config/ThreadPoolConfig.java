@@ -20,7 +20,7 @@ public class ThreadPoolConfig {
      * 价格处理线程池
      */
     @Bean("priceExecutor")
-    public ThreadPoolTaskExecutor priceExecutor() {
+    ThreadPoolTaskExecutor priceExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);
@@ -38,7 +38,7 @@ public class ThreadPoolConfig {
      * 基金处理线程池
      */
     @Bean("fundExecutor")
-    public ThreadPoolTaskExecutor fundExecutor() {
+    ThreadPoolTaskExecutor fundExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);
@@ -55,7 +55,7 @@ public class ThreadPoolConfig {
      * 统计任务线程池
      */
     @Bean("statisticExecutor")
-    public ThreadPoolTaskExecutor statisticExecutor() {
+    ThreadPoolTaskExecutor statisticExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);

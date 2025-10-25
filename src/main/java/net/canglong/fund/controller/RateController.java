@@ -26,7 +26,7 @@ public class RateController {
 
   @GetMapping(value = "/month/{id}/{year}")
   public Object getMonthRateById(@PathVariable("id") String fundId,
-      @PathVariable("year") int year) {
+      @PathVariable int year) {
     return rateService.getMonthRateById(fundId, year);
   }
 
@@ -46,20 +46,20 @@ public class RateController {
   }
 
   @GetMapping(value = "/year/order/{types}/{year}")
-  public Object getYearRateByTypesAndYear(@PathVariable("types") List<String> types,
-      @PathVariable("year") int year, Pageable pageable) {
+  public Object getYearRateByTypesAndYear(@PathVariable List<String> types,
+      @PathVariable int year, Pageable pageable) {
     return rateService.getYearRateByTypesAndYear(types, year, pageable);
   }
 
   @GetMapping(value = "/year/rank/{types}/{period}")
-  public Object getYearAverageRankByTypesAndPeriod(@PathVariable("types") List<String> types,
-      @PathVariable("period") int period, Pageable pageable) {
+  public Object getYearAverageRankByTypesAndPeriod(@PathVariable List<String> types,
+      @PathVariable int period, Pageable pageable) {
     return rateService.getYearAverageRankByTypesAndPeriod(types, period, pageable);
   }
 
   @PostMapping(value = "/year/{id}")
   public Object generateYearRate(@PathVariable("id") String fundId,
-      @RequestParam("fromCreationDate") boolean fromCreationDate) throws Exception {
+      @RequestParam boolean fromCreationDate) throws Exception {
     return rateService.generate(fundId, fromCreationDate);
   }
 
