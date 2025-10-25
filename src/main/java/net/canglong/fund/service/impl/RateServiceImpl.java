@@ -27,8 +27,6 @@ import net.canglong.fund.service.RateService;
 import net.canglong.fund.vo.YearAverageRate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -107,7 +105,7 @@ public class RateServiceImpl implements RateService {
         generateMonthPriceData(fundId, statisticDueDate);
       }
     } else {
-      log.info(
+      log.debug(
           "Bypass fund statistic generation since less than 1 month's data need to be delt with.");
     }
     Fund fund = fundService.findById(fundId);

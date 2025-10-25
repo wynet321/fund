@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.annotation.Resource;
 import lombok.extern.log4j.Log4j2;
@@ -264,7 +265,6 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  @Async
   public Boolean startPriceRetrievalJob(int threadCount) {
     if (threadCount <= 0) {
       threadCount = this.threadCount;
@@ -297,8 +297,8 @@ public class PriceServiceImpl implements PriceService {
 
   @Async
   @Scheduled(fixedDelay = 86400000)
-  public Boolean startPriceRetrievalJob() {
-    return startPriceRetrievalJob(this.threadCount);
+  public void startPriceRetrievalJob() {
+    startPriceRetrievalJob(this.threadCount);
   }
 
   @Override
@@ -373,7 +373,11 @@ public class PriceServiceImpl implements PriceService {
             savedCompany.getName());
         fundCount.addAndGet(fundList.size());
         for (Fund fund : fundList) {
-          priceExecutor.execute(new PriceTask(fund.getId()));
+          try {
+            priceExecutor.execute(new PriceTask(fund.getId()));
+          } catch (RejectedExecutionException e) {
+            log.warn("Price task for fund {} rejected - thread pool saturated", fund.getId());
+          }
         }
       } catch (Exception e) {
         log.error(e.getMessage(), e);

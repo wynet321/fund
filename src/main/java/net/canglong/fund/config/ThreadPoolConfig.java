@@ -24,9 +24,12 @@ public class ThreadPoolConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);
-        executor.setQueueCapacity(1000);
+        // executor.setQueueCapacity(5000); // Increased queue capacity
         executor.setThreadNamePrefix("Price-Task-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        // Use AbortPolicy to prevent caller thread from executing tasks
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;
     }
@@ -39,9 +42,11 @@ public class ThreadPoolConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);
-        executor.setQueueCapacity(1000);
+        // executor.setQueueCapacity(1000);
         executor.setThreadNamePrefix("Fund-Task-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;
     }
@@ -54,9 +59,11 @@ public class ThreadPoolConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(threadCount);
         executor.setMaxPoolSize(threadCount * 2);
-        executor.setQueueCapacity(1000);
+        // executor.setQueueCapacity(1000);
         executor.setThreadNamePrefix("Statistic-Task-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;
     }
