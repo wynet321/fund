@@ -2,6 +2,8 @@ package net.canglong.fund.controller;
 
 import jakarta.annotation.Resource;
 import net.canglong.fund.service.FundService;
+
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +18,7 @@ public class FundController {
   private FundService fundService;
 
   @GetMapping(value = "/{id}")
-  public Object find(@PathVariable String id) {
+  public Object find(@PathVariable @NonNull String id) {
     return fundService.findById(id);
   }
 
@@ -26,7 +28,7 @@ public class FundController {
   }
 
   @GetMapping(value = "/search")
-  public Object searchByName(@RequestParam String keyword, 
+  public Object searchByName(@RequestParam @NonNull String keyword, 
                               @RequestParam(defaultValue = "10") int limit) {
     return fundService.searchByNameOrIdContaining(keyword, limit);
   }

@@ -7,6 +7,7 @@ import net.canglong.fund.entity.Company;
 import net.canglong.fund.service.CompanyService;
 import net.canglong.fund.service.WebsiteDataService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,12 +24,12 @@ public class CompanyController {
   private WebsiteDataService dataService;
 
   @GetMapping
-  public Object findAll(Pageable pageable) {
+  public Object findAll(@NonNull Pageable pageable) {
     return companyService.find(pageable);
   }
 
   @GetMapping(value = "/{id}")
-  public Object find(@PathVariable String id) {
+  public Object find(@PathVariable @NonNull String id) {
     return companyService.find(id);
   }
 

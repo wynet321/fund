@@ -6,9 +6,11 @@ import net.canglong.fund.entity.YearRateIdentity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface YearRateRepo extends JpaRepository<YearRate, YearRateIdentity> {
@@ -31,4 +33,9 @@ public interface YearRateRepo extends JpaRepository<YearRate, YearRateIdentity> 
   @Query(value = "SELECT r.yearRateIdentity.fundId, r.name, r.companyName, r.type, avg(r.rate) as average,  STDDEV(r.rate) AS stddev FROM YearRate r WHERE r.yearRateIdentity.year>=:year AND r.type IN :types group by r.yearRateIdentity.fundId, r.name, r.companyName, r.type order by average desc")
   Page<Object[]> findAverageRankByTypesAndYear(@Param("types") List<String> types, @Param("year") int year,
       Pageable pageable);
+      
+  @Modifying
+  @Transactional
+  @Query("delete from YearRate y where y.yearRateIdentity.fundId = :fundId")
+  void deleteByFundId(@Param("fundId") String fundId);
 }

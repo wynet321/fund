@@ -1,27 +1,26 @@
 package net.canglong.fund.service;
 
 import java.util.List;
-import jakarta.transaction.Transactional;
-import net.canglong.fund.entity.Company;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
+
+import net.canglong.fund.entity.Company;
 
 public interface CompanyService {
 
-  Page<Company> find(Pageable pageable);
+  Page<Company> find(@NonNull Pageable pageable);
 
-  Company find(String id);
+  Company find(@NonNull String id);
 
-  @Transactional
-  Company create(Company company);
+  Company create(@NonNull Company company);
 
-  @Transactional
-  List<Company> create(List<Company> companies);
+  List<Company> create(@NonNull List<Company> companies);
 
-  @Transactional
-  Company update(Company company);
+  Company update(@NonNull Company company);
 
-  @Transactional
-  List<Company> update(List<Company> companies);
+  void delete(@NonNull String id);
 
+  List<Company> update(@NonNull List<Company> companies);
 }

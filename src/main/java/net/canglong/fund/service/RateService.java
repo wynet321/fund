@@ -8,32 +8,33 @@ import net.canglong.fund.entity.YearRate;
 import net.canglong.fund.vo.YearAverageRate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 public interface RateService {
 
-  List<YearRate> getYearRateById(String fundId);
+  List<YearRate> getYearRateById(@NonNull String fundId);
 
-  PeriodRate getYearRateByIdAndYear(String fundId);
+  PeriodRate getYearRateByIdAndYear(@NonNull String fundId);
 
-  List<PeriodRate> getYearRateByName(String fundName);
+  List<PeriodRate> getYearRateByName(@NonNull String fundName);
 
-  Boolean generate(String fundId, boolean refreshAllData) throws Exception;
+  Boolean generate(@NonNull String fundId, boolean refreshAllData) throws Exception;
 
-  List<MonthRate> getMonthRateById(String fundId, int year);
+  List<MonthRate> getMonthRateById(@NonNull String fundId, int year);
 
-  Boolean generate(List<String> types, boolean refreshAllData) throws Exception;
+  Boolean generate(@NonNull List<String> types, boolean refreshAllData) throws Exception;
 
   Status getStatisticJobStatus();
 
-  Page<PeriodRate> getPeriodRateDesc(String type, Pageable pageable);
+  Page<PeriodRate> getPeriodRateDesc(@NonNull String type, @NonNull Pageable pageable);
 
-  PeriodRate generatePeriodRate(String fundId) throws Exception;
+  PeriodRate generatePeriodRate(@NonNull String fundId) throws Exception;
 
-  Page<YearRate> getYearRateByTypesAndYear(List<String> types, int year, Pageable pageable);
+  Page<YearRate> getYearRateByTypesAndYear(@NonNull List<String> types, int year, @NonNull Pageable pageable);
 
-  List<YearAverageRate> getYearAverageRankByTypesAndPeriod(List<String> types, int period,
-      Pageable pageable);
+  List<YearAverageRate> getYearAverageRankByTypesAndPeriod(@NonNull List<String> types, int period,
+      @NonNull Pageable pageable);
 
-  Boolean generateStatisticData(List<String> types, boolean refreshAllData);
+  Boolean generateStatisticData(@NonNull List<String> types, boolean refreshAllData);
 
 }

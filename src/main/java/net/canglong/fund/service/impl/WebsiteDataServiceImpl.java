@@ -3,10 +3,12 @@ package net.canglong.fund.service.impl;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jakarta.annotation.Resource;
@@ -26,6 +28,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 @Log4j2
 @Service
@@ -79,7 +82,8 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
   }
 
   @Override
-  public List<Fund> getFunds(String companyId, String companyAbbr) {
+  @NonNull
+  public List<Fund> getFunds(@NonNull String companyId, String companyAbbr) {
     int index = 0;
     int totalCount = 1;
     List<Fund> funds = new LinkedList<>();
@@ -252,24 +256,29 @@ public class WebsiteDataServiceImpl implements WebsiteDataService {
   }
 
   private void addParentFund(Elements elementTds) {
-    Fund parentFund = fundService.findById(elementTds.get(0).text());
-    if (parentFund == null) {
-      log.error("Parent Fund {} can't be found.", elementTds.get(0).text());
-    } else {
-      Fund originalFund = fundService.findById(elementTds.get(1).text());
-      if (originalFund == null) {
+    String parentFundId = Objects.requireNonNull(elementTds.get(0).text(), "Parent fund ID cannot be null");
+    String originalFundId = Objects.requireNonNull(elementTds.get(1).text(), "Original fund ID cannot be null");
+    
+    Optional<Fund> parentFundOpt = fundService.findById(parentFundId);
+    if (parentFundOpt.isPresent()) {
+      Fund parentFund = parentFundOpt.get();
+      Optional<Fund> originalFundOpt = fundService.findById(originalFundId);
+      if (originalFundOpt.isPresent()) {
+        Fund originalFund = originalFundOpt.get();
+        originalFund.setName(elementTds.get(2).text());
+        fundService.update(originalFund);
+      } else {
         // new fund
         Fund newFund = new Fund();
-        newFund.setId(elementTds.get(1).text());
+        newFund.setId(originalFundId);
         newFund.setName(elementTds.get(2).text());
         newFund.setCompanyId(parentFund.getCompanyId());
         newFund.setType(parentFund.getType());
-        newFund.setParentId(elementTds.get(0).text());
+        newFund.setParentId(parentFundId);
         fundService.create(newFund);
-      } else {
-        originalFund.setName(elementTds.get(2).text());
-        fundService.create(originalFund);
       }
+    } else {
+      log.error("Parent Fund {} can't be found.", parentFundId);
     }
   }
 }

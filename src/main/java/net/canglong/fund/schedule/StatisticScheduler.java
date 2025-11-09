@@ -1,6 +1,7 @@
 package net.canglong.fund.schedule;
 
 import java.util.List;
+import java.util.Objects;
 
 import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Status;
@@ -13,19 +14,19 @@ import org.springframework.stereotype.Component;
 public class StatisticScheduler {
 
   private final RateService rateService;
-  private boolean monitorRequired;
+  public static boolean monitorRequired;
 
   public StatisticScheduler(RateService rateService) {
     this.rateService = rateService;
     monitorRequired = false;
   }
 
-  // Run roughly daily
+  // Run roughly monthly
   @Scheduled(fixedDelay = 108000000)
   public void runStatisticGeneration() {
     // Generate statistics for default types without refreshing all data
     monitorRequired = true;
-    rateService.generateStatisticData(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型"), false);
+    rateService.generateStatisticData(Objects.requireNonNull(List.of("混合型", "股票型", "债券型", "QDII", "短期理财债券型")), false);
   }
 
   // Report job status periodically

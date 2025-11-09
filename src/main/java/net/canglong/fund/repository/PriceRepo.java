@@ -8,6 +8,7 @@ import net.canglong.fund.entity.PriceIdentity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -47,5 +48,12 @@ public interface PriceRepo extends JpaRepository<Price, PriceIdentity> {
     List<Price> findByFundIdAndDateRange(@Param("fundId") String fundId, 
                                           @Param("startDate") LocalDate startDate, 
                                           @Param("endDate") LocalDate endDate);
+
+    @Query("select p from Price p where p.priceIdentity.fundId = :fundId")
+    Page<Price> findByFundId(@Param("fundId") String fundId, Pageable pageable);
+
+    @Modifying
+    @Query("delete from Price p where p.priceIdentity.fundId = :fundId")
+    void deleteByFundId(@Param("fundId") String fundId);
 
 }

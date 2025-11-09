@@ -1,6 +1,5 @@
 package net.canglong.fund.service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -13,40 +12,42 @@ import net.canglong.fund.vo.MonthPrice;
 import net.canglong.fund.vo.YearPrice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
+import net.canglong.fund.vo.FundPrice;
 
 public interface PriceService {
 
-  Page<Price> findByName(String Name, Pageable pageable);
+  Page<Price> findByName(@NonNull String Name, @NonNull Pageable pageable);
 
-  Page<Price> findByFundId(String id, Pageable pageable);
+  Page<Price> findByFundId(@NonNull String id, @NonNull Pageable pageable);
 
-  Price findLatestPriceBeforeDate(String id, LocalDate date);
+  Price findLatestPriceBeforeDate(@NonNull String id, @NonNull LocalDate date);
 
-  Page<Price> find(String id, LocalDate startDate, Pageable pageable);
+  Page<Price> find(@NonNull String id, @NonNull LocalDate startDate, @NonNull Pageable pageable);
 
-  List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId, LocalDate startDate);
+  List<MonthAveragePrice> findAllMonthAveragePriceByFundId(@NonNull String fundId, @NonNull LocalDate startDate);
 
   @Transactional
-  Integer create(String fundId) throws Exception;
+  Integer create(@NonNull String fundId) throws Exception;
 
-  FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate)
+  FundPercentage findPercentageByDate(@NonNull String id, @NonNull LocalDate startDate, @NonNull LocalDate endDate)
       throws Exception;
 
-  Price findPriceAtCreationById(String id);
+  Price findPriceAtCreationById(@NonNull String id);
 
-  YearPrice findYearPriceById(String id);
+  YearPrice findYearPriceById(@NonNull String id);
 
-  Map<Integer, BigDecimal> findYearPriceMapById(String id);
+  Map<Integer, FundPrice> findYearPriceMapById(@NonNull String id);
 
-  Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year);
+  Map<Integer, FundPrice> findMonthPriceMapById(@NonNull String id, int year);
 
-  MonthPrice findMonthPriceById(String id, int year);
+  MonthPrice findMonthPriceById(@NonNull String id, int year);
 
-  Price findEarliestPriceAfterDate(String id, LocalDate targetDate);
+  Price findEarliestPriceAfterDate(@NonNull String id, @NonNull LocalDate targetDate);
 
-  LocalDate findLatestPriceDateById(String id);
+  LocalDate findLatestPriceDateById(@NonNull String id);
 
-  LocalDate findEarliestPriceDateById(String id);
+  LocalDate findEarliestPriceDateById(@NonNull String id);
 
   Boolean startPriceRetrievalJob(int threadCount);
 

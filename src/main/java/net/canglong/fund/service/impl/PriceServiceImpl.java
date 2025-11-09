@@ -3,16 +3,18 @@ package net.canglong.fund.service.impl;
 import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import jakarta.annotation.Resource;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import net.canglong.fund.entity.Company;
 import net.canglong.fund.entity.Fund;
@@ -29,10 +31,12 @@ import net.canglong.fund.vo.DatePriceIdentity;
 import net.canglong.fund.vo.FundPercentage;
 import net.canglong.fund.vo.MonthPrice;
 import net.canglong.fund.vo.YearPrice;
+import net.canglong.fund.vo.FundPrice;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -60,7 +64,7 @@ public class PriceServiceImpl implements PriceService {
   private int threadCount;
 
   @Override
-  public Page<Price> findByName(String name, Pageable pageable) {
+  public Page<Price> findByName(@NonNull String name, @NonNull Pageable pageable) {
     Fund fund = fundService.findByName(name);
     if (fund != null) {
       Price price = new Price();
@@ -71,50 +75,56 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  public Page<Price> findByFundId(String id, Pageable pageable) {
+  public Page<Price> findByFundId(@NonNull String id, @NonNull Pageable pageable) {
     return priceRepo.findLatestPriceBeforeDate(id, pageable);
   }
 
   @Override
-  public Integer create(String fundId) throws Exception {
+  public Integer create(@NonNull String fundId) throws Exception {
     int page;
     int count = 0;
-    Fund fund = fundService.findById(fundId);
-    if (fund != null) {
-      LocalDate latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
-      if (latestPriceDate == null || LocalDate.now()
-          .isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
-        page = fund.getCurrentPage();
-        log.debug("Start to collect fund {}", fund.getName());
-        List<Price> prices;
-        String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
-        do {
-          prices = websiteDataService.getPrices(priceWebPage, fund, page - 1);
+    
+    Fund fund = fundService.findById(fundId)
+        .orElseThrow(() -> new Exception("Fund not found with id: " + fundId));
+    
+    LocalDate latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
+    if (latestPriceDate == null || LocalDate.now()
+        .isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
+      page = fund.getCurrentPage();
+      log.debug("Start to collect fund {}", fund.getName());
+      List<Price> prices;
+      String priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
+      do {
+        prices = websiteDataService.getPrices(priceWebPage, fund, page - 1);
+        if (prices == null) {
+          log.warn("Received null prices for fund {} on page {}", fund.getId(), page - 1);
+          break;
+        }
+        if (!prices.isEmpty()) {
           prices = priceRepo.saveAll(prices);
           count += prices.size();
-          if (count % 1000 == 0) {
-            log.debug("{} completed {} records.", fund.getName(), count);
-          }
-          priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
-        } while (websiteDataService.containsPrice(priceWebPage));
-        log.debug("{} total {} records.", fund.getName(), count);
-        log.info("{} page {} done.", fund.getName(), page - 1);
-        fund.setCurrentPage(page - 1);
-        fundService.create(fund);
-        LocalDate fundLatestDate = priceRepo.findLatestPriceDateById(fund.getId());
-        log.info("Fund {} latest price date is {}", fund.getId(),
-            fundLatestDate != null ? fundLatestDate.toString() : "Empty");
-      } else {
-        log.info("Bypass fund {} latest price date is {}", fund.getId(), latestPriceDate);
-      }
+        }
+        if (count % 1000 == 0) {
+          log.debug("{} completed {} records.", fund.getName(), count);
+        }
+        priceWebPage = websiteDataService.getPriceWebPage(fund, page++);
+      } while (websiteDataService.containsPrice(priceWebPage));
+      log.debug("{} total {} records.", fund.getName(), count);
+      log.info("{} page {} done.", fund.getName(), page - 1);
+      fund.setCurrentPage(page - 1);
+      fundService.create(fund);
+      LocalDate fundLatestDate = priceRepo.findLatestPriceDateById(fund.getId());
+      log.info("Fund {} latest price date is {}", fund.getId(),
+          fundLatestDate != null ? fundLatestDate.toString() : "Empty");
     } else {
-      throw new Exception("can't find the fund in DB.");
+      log.info("Bypass fund {} latest price date is {}", fund.getId(), latestPriceDate);
     }
+    
     return count;
   }
 
   @Override
-  public FundPercentage findPercentageByDate(String id, LocalDate startDate, LocalDate endDate) {
+  public FundPercentage findPercentageByDate(@NonNull String id, @NonNull LocalDate startDate, @NonNull LocalDate endDate) {
     Price priceAtStartDate = priceRepo.findLatestPriceBeforeDate(id, startDate);
     Price priceAtEndDate = priceRepo.findLatestPriceBeforeDate(id, endDate);
     // Guard against nulls and divide-by-zero
@@ -122,28 +132,30 @@ public class PriceServiceImpl implements PriceService {
         || priceAtStartDate.getAccumulatedPrice() == null
         || BigDecimal.ZERO.compareTo(priceAtStartDate.getAccumulatedPrice()) == 0
         || priceAtEndDate.getAccumulatedPrice() == null) {
-      Fund fund = fundService.findById(id);
-      return new FundPercentage(id, fund != null ? fund.getName() : id, "0.00%", startDate, endDate);
+      return fundService.findById(id)
+          .map(fund -> new FundPercentage(id, fund.getName(), "0.00%", startDate, endDate))
+          .orElse(new FundPercentage(id, id, "0.00%", startDate, endDate));
     }
     BigDecimal ratio = priceAtEndDate.getAccumulatedPrice()
         .subtract(priceAtStartDate.getAccumulatedPrice())
         .divide(priceAtStartDate.getAccumulatedPrice(), 2, RoundingMode.HALF_UP);
     DecimalFormat df = new DecimalFormat("0.00%");
     String percentage = df.format(ratio);
-    Fund fund = fundService.findById(id);
-    return new FundPercentage(id, fund.getName(), percentage, startDate,
-        endDate);
+    Fund fund = fundService.findById(id)
+        .orElseThrow(() -> new RuntimeException("Fund not found with id: " + id));
+    return new FundPercentage(id, fund.getName(), percentage, startDate, endDate);
   }
 
   @Override
-  public Price findPriceAtCreationById(String id) {
+  public Price findPriceAtCreationById(@NonNull String id) {
     return priceRepo.findPriceAtCreationById(id);
   }
 
   @Override
-  public YearPrice findYearPriceById(String id) {
+  public YearPrice findYearPriceById(@NonNull String id) {
     Price priceAtFundCreation = priceRepo.findPriceAtCreationById(id);
-    Fund fund = fundService.findById(id);
+    Fund fund = fundService.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Fund not found with id: " + id));
     if (priceAtFundCreation == null) {
       return new YearPrice(id, fund.getName(), new ArrayList<>());
     }
@@ -155,35 +167,36 @@ public class PriceServiceImpl implements PriceService {
         LocalDate.of(priceAtFundCreation.getPriceIdentity().getPriceDate().getYear(), 12, 31))) {
       priceList.add(new DatePriceIdentity(
           LocalDate.of(priceAtFundCreation.getPriceIdentity().getPriceDate().getYear() - 1, 12, 31),
-          priceAtFundCreation.getAccumulatedPrice()));
+          priceAtFundCreation.getAccumulatedPrice(), priceAtFundCreation.getPrice()));
     }
     for (int i = 0; i < years; i++) {
       LocalDate date = fundCreationDate.with(firstDayOfYear()).plusYears(1 + i);
       Price price = priceRepo.findLatestPriceBeforeDate(id, date);
       if (price != null && price.getAccumulatedPrice() != null) {
         priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(),
-            price.getAccumulatedPrice()));
+            price.getAccumulatedPrice(), price.getPrice()));
       }
     }
     return new YearPrice(id, fund.getName(), priceList);
   }
 
   @Override
-  public Map<Integer, BigDecimal> findYearPriceMapById(String id) {
+  public Map<Integer, FundPrice> findYearPriceMapById(@NonNull String id) {
     YearPrice yearPrice = findYearPriceById(id);
     List<DatePriceIdentity> datePriceIdentities = yearPrice.getPriceList();
-    Map<Integer, BigDecimal> yearPrices = new HashMap<>();
+    Map<Integer, FundPrice> yearPrices = new HashMap<>();
     for (DatePriceIdentity datePriceIdentity : datePriceIdentities) {
       yearPrices.put(datePriceIdentity.getPriceDate().getYear(),
-          datePriceIdentity.getAccumulatedPrice());
+          new FundPrice(datePriceIdentity.getAccumulatedPrice(), datePriceIdentity.getCurrentPrice()));
     }
     return yearPrices;
   }
 
   @Override
-  public MonthPrice findMonthPriceById(String id, int year) {
+  public MonthPrice findMonthPriceById(@NonNull String id, int year) {
     Price priceAtFundCreation = priceRepo.findPriceAtCreationById(id);
-    Fund fund = fundService.findById(id);
+    Fund fund = fundService.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Fund not found with id: " + id));
     if (priceAtFundCreation != null) {
       LocalDate fundCreationDate = priceAtFundCreation.getPriceIdentity().getPriceDate();
       LocalDate today = LocalDate.now();
@@ -196,7 +209,7 @@ public class PriceServiceImpl implements PriceService {
           Price price = priceRepo.findLatestPriceBeforeDate(id, date);
           if (price != null && price.getAccumulatedPrice() != null) {
             priceList.add(new DatePriceIdentity(price.getPriceIdentity().getPriceDate(),
-                price.getAccumulatedPrice()));
+                price.getAccumulatedPrice(), price.getPrice()));
           }
         }
         return new MonthPrice(id, fund.getName(), year, priceList);
@@ -206,45 +219,45 @@ public class PriceServiceImpl implements PriceService {
   }
 
   @Override
-  public Map<Integer, BigDecimal> findMonthPriceMapById(String id, int year) {
+  public Map<Integer, FundPrice> findMonthPriceMapById(@NonNull String id, int year) {
     MonthPrice monthPrice = findMonthPriceById(id, year);
     List<DatePriceIdentity> datePriceIdentities = monthPrice.getPriceList();
-    Map<Integer, BigDecimal> monthPrices = new HashMap<>();
+    Map<Integer, FundPrice> monthPrices = new HashMap<>();
     for (DatePriceIdentity datePriceIdentity : datePriceIdentities) {
       monthPrices.put(datePriceIdentity.getPriceDate().getMonthValue(),
-          datePriceIdentity.getAccumulatedPrice());
+          new FundPrice(datePriceIdentity.getAccumulatedPrice(), datePriceIdentity.getCurrentPrice()));
     }
     return monthPrices;
   }
 
   @Override
-  public Price findEarliestPriceAfterDate(String id, LocalDate targetDate) {
+  public Price findEarliestPriceAfterDate(@NonNull String id, @NonNull LocalDate targetDate) {
     return priceRepo.findEarliestPriceAfterDate(id, targetDate);
   }
 
   @Override
-  public LocalDate findLatestPriceDateById(String id) {
+  public LocalDate findLatestPriceDateById(@NonNull String id) {
     return priceRepo.findLatestPriceDateById(id);
   }
 
   @Override
-  public LocalDate findEarliestPriceDateById(String id) {
+  public LocalDate findEarliestPriceDateById(@NonNull String id) {
     return priceRepo.findEarliestPriceDateById(id);
   }
 
   @Override
-  public Page<Price> find(String id, LocalDate startDate, Pageable pageable) {
+  public Page<Price> find(@NonNull String id, @NonNull LocalDate startDate, @NonNull Pageable pageable) {
     return priceRepo.findPriceSet(id, startDate, pageable);
   }
 
   @Override
-  public List<MonthAveragePrice> findAllMonthAveragePriceByFundId(String fundId,
-      LocalDate startDate) {
+  public List<MonthAveragePrice> findAllMonthAveragePriceByFundId(@NonNull String fundId,
+      @NonNull LocalDate startDate) {
     return priceRepo.findAllMonthAveragePriceByFundId(fundId, startDate);
   }
 
   @Override
-  public Price findLatestPriceBeforeDate(String id, LocalDate date) {
+  public Price findLatestPriceBeforeDate(@NonNull String id, @NonNull LocalDate date) {
     return priceRepo.findLatestPriceBeforeDate(id, date);
   }
 
@@ -288,7 +301,11 @@ public class PriceServiceImpl implements PriceService {
       log.info("Totally found {} companies.", companyIds.size());
       startTime = System.currentTimeMillis();
       for (String companyId : companyIds) {
-        fundExecutor.execute(new FundTask(companyId));
+        if (companyId != null) {
+          fundExecutor.execute(new FundTask(companyId));
+        } else {
+          log.warn("Skipping null companyId in the list");
+        }
       }
       fundExecutor.shutdown();
     }
@@ -348,9 +365,13 @@ public class PriceServiceImpl implements PriceService {
     @Override
     public void run() {
       try {
-        create(fundId);
+        if (fundId != null) {
+          create(fundId);
+        } else {
+          log.error("fundId is null in PriceTask");
+        }
       } catch (Exception e) {
-        log.error(e.getMessage(), e);
+        log.error("Error in PriceTask for fundId: " + fundId, e);
       }
     }
   }
@@ -359,16 +380,22 @@ public class PriceServiceImpl implements PriceService {
 
     private final String companyId;
 
-    public FundTask(String companyId) {
+    public FundTask(@NonNull String companyId) {
       this.companyId = companyId;
     }
 
     @Override
     public void run() {
       try {
-        Company savedCompany = companyService.create(websiteDataService.getCompany(companyId));
+        Company company = websiteDataService.getCompany(companyId);
+        if (company == null) {
+          log.warn("No company found for id: {}", companyId);
+          return;
+        }
+        Company savedCompany = companyService.create(company);
+        String companyAbbr = savedCompany.getAbbr() != null ? savedCompany.getAbbr() : "";
         List<Fund> fundList = fundService.create(
-            websiteDataService.getFunds(companyId, savedCompany.getAbbr()));
+            websiteDataService.getFunds(Objects.requireNonNull(company.getId()), companyAbbr));
         log.info("Total {} funds found for {}", fundList.size(),
             savedCompany.getName());
         fundCount.addAndGet(fundList.size());

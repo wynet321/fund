@@ -1,42 +1,44 @@
 package net.canglong.fund.service;
 
 import java.util.List;
+import java.util.Optional;
 import jakarta.transaction.Transactional;
 import net.canglong.fund.entity.Fund;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 
 public interface FundService {
 
-  Page<Fund> get(Pageable pageable);
+  Page<Fund> get(@NonNull Pageable pageable);
 
-  Fund findById(String id);
+  Optional<Fund> findById(@NonNull String id);
 
-  Page<Fund> findByCompanyId(String companyId, Pageable pageable);
-
-  @Transactional
-  Fund create(Fund fund);
+  Page<Fund> findByCompanyId(@NonNull String companyId, @NonNull Pageable pageable);
 
   @Transactional
-  Fund update(Fund fund);
+  Fund create(@NonNull Fund fund);
 
   @Transactional
-  List<Fund> create(List<Fund> funds);
+  Fund update(@NonNull Fund fund);
+
+  @Transactional
+  List<Fund> create(@NonNull List<Fund> funds);
 
   List<Fund> findAll();
 
-  Fund findByName(String name);
+  Fund findByName(@NonNull String name);
 
-  List<Fund> findAllByType(String type);
+  List<Fund> findAllByType(@NonNull String type);
 
-  List<Fund> findAllExcludesType(String type);
+  List<Fund> findAllExcludesType(@NonNull String type);
 
-  List<Fund> findAllByTypes(List<String> types);
+  List<Fund> findAllByTypes(@NonNull List<String> types);
 
   List<String> findAllTypes();
 
-  List<Fund> searchByNameContaining(String keyword, int limit);
+  List<Fund> searchByNameContaining(@NonNull String keyword, int limit);
 
-  List<Fund> searchByNameOrIdContaining(String keyword, int limit);
+  List<Fund> searchByNameOrIdContaining(@NonNull String keyword, int limit);
 
 }

@@ -9,7 +9,8 @@ public interface WebsiteDataService {
 
   List<String> getCompanyIds();
 
-  List<Fund> getFunds(String companyId, String companyAbbr);
+  @org.springframework.lang.NonNull
+  List<Fund> getFunds(@org.springframework.lang.NonNull String companyId, String companyAbbr);
 
   Company getCompany(String companyId) throws Exception;
 
