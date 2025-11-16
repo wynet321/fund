@@ -89,7 +89,7 @@ public class PriceServiceImpl implements PriceService {
     
     LocalDate latestPriceDate = priceRepo.findLatestPriceDateById(fundId);
     if (latestPriceDate == null || LocalDate.now()
-        .isAfter(LocalDate.parse(latestPriceDate.toString()).plusMonths(1))) {
+        .isAfter(LocalDate.parse(latestPriceDate.toString()).plusWeeks(1))) {
       page = fund.getCurrentPage();
       log.debug("Start to collect fund {}", fund.getName());
       List<Price> prices;
