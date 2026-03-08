@@ -135,19 +135,20 @@ public class RateServiceImpl implements RateService {
         yearRate.setName(fund.getName());
         yearRate.setCompanyName(company.getName());
         yearRate.setType(fund.getType());
-        if (yearPrices.containsKey(key - 1) && yearPrices.get(key - 1) != null 
+        if (yearPrices.containsKey(key - 1) && yearPrices.get(key - 1) != null
             && yearPrices.get(key - 1).getAccumulatedPrice() != null
             && yearPrices.get(key) != null && yearPrices.get(key).getAccumulatedPrice() != null) {
           BigDecimal prevAccumulatedPrice = yearPrices.get(key - 1).getAccumulatedPrice();
           BigDecimal currentAccumulatedPrice = yearPrices.get(key).getAccumulatedPrice();
           BigDecimal prevPrice = yearPrices.get(key - 1).getCurrentPrice();
-          
-          if (prevAccumulatedPrice.compareTo(BigDecimal.ZERO) == 0 || prevPrice == null || prevPrice.compareTo(BigDecimal.ZERO) == 0) {
+
+          if (prevAccumulatedPrice.compareTo(BigDecimal.ZERO) == 0 || prevPrice == null
+              || prevPrice.compareTo(BigDecimal.ZERO) == 0) {
             yearRate.setRate(BigDecimal.ZERO);
           } else {
             yearRate.setRate(
                 currentAccumulatedPrice.subtract(prevAccumulatedPrice)
-                    .divide(prevPrice, 4, RoundingMode.HALF_UP));
+                    .divide(prevAccumulatedPrice, 4, RoundingMode.HALF_UP));
           }
         } else {
           yearRate.setRate(BigDecimal.valueOf(0));
@@ -170,19 +171,20 @@ public class RateServiceImpl implements RateService {
         monthRate.setName(fund.getName());
         monthRate.setCompanyName(company.getName());
         monthRate.setType(fund.getType());
-        if (monthPrices.containsKey(key - 1) && monthPrices.get(key - 1) != null 
+        if (monthPrices.containsKey(key - 1) && monthPrices.get(key - 1) != null
             && monthPrices.get(key - 1).getAccumulatedPrice() != null
             && monthPrices.get(key) != null && monthPrices.get(key).getAccumulatedPrice() != null) {
           BigDecimal prevAccumulatedPrice = monthPrices.get(key - 1).getAccumulatedPrice();
           BigDecimal currentAccumulatedPrice = monthPrices.get(key).getAccumulatedPrice();
           BigDecimal prevPrice = monthPrices.get(key - 1).getCurrentPrice();
-          
-          if (prevAccumulatedPrice.compareTo(BigDecimal.ZERO) == 0 || prevPrice == null || prevPrice.compareTo(BigDecimal.ZERO) == 0) {
+
+          if (prevAccumulatedPrice.compareTo(BigDecimal.ZERO) == 0 || prevPrice == null
+              || prevPrice.compareTo(BigDecimal.ZERO) == 0) {
             monthRate.setRate(BigDecimal.ZERO);
           } else {
             monthRate.setRate(
                 currentAccumulatedPrice.subtract(prevAccumulatedPrice)
-                    .divide(prevPrice, 4, RoundingMode.HALF_UP));
+                    .divide(prevAccumulatedPrice, 4, RoundingMode.HALF_UP));
           }
         } else {
           Price price = null;
@@ -197,14 +199,14 @@ public class RateServiceImpl implements RateService {
           if (price == null) {
             monthRate.setRate(BigDecimal.valueOf(0L));
           } else {
-            if (price.getAccumulatedPrice() == null || price.getPrice() == null 
-              || price.getAccumulatedPrice().compareTo(BigDecimal.ZERO) == 0
-              || price.getPrice().compareTo(BigDecimal.ZERO) == 0) {
-            monthRate.setRate(BigDecimal.ZERO);
-          } else {
-            monthRate.setRate(monthPrices.get(key).getAccumulatedPrice().subtract(price.getAccumulatedPrice())
-                .divide(price.getPrice(), 4, RoundingMode.HALF_UP));
-          }
+            if (price.getAccumulatedPrice() == null || price.getPrice() == null
+                || price.getAccumulatedPrice().compareTo(BigDecimal.ZERO) == 0
+                || price.getPrice().compareTo(BigDecimal.ZERO) == 0) {
+              monthRate.setRate(BigDecimal.ZERO);
+            } else {
+              monthRate.setRate(monthPrices.get(key).getAccumulatedPrice().subtract(price.getAccumulatedPrice())
+                  .divide(price.getAccumulatedPrice(), 4, RoundingMode.HALF_UP));
+            }
           }
         }
         monthRateRepo.saveAndFlush(monthRate);
@@ -230,7 +232,7 @@ public class RateServiceImpl implements RateService {
         BigDecimal currentAccumulatedPrice = yearPrices.get(currentYear).getAccumulatedPrice();
         BigDecimal prevAccumulatedPrice = yearPrices.get(currentYear - i - 1).getAccumulatedPrice();
         BigDecimal prevPrice = yearPrices.get(currentYear - i - 1).getCurrentPrice();
-        
+
         if (prevPrice.compareTo(BigDecimal.ZERO) != 0) {
           BigDecimal rate = currentAccumulatedPrice
               .subtract(prevAccumulatedPrice)
